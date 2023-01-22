@@ -3,3 +3,4 @@ Task For Anirban
 1- Controllers for User
     - Endpoints
         - user authentication
+git rm .env --cached
