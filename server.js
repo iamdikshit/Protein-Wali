@@ -1,12 +1,34 @@
-import dotenv from "dotenv";
-dotenv.config({ path: "./config.env" });
-
-// Database Connection
-
-// server setup
+import config from "./config/env.config.js"
 import app from "./app.js";
-const port = process.env.PORT || 3000;
-const server = app.listen(port, () => {
-  console.log(`App running on port : ${port}..`);
-  console.log(`It is a ${process.env.NODE_ENV} envrionment`);
-});
+import mongoose from "mongoose";
+
+
+// Self Invoking Function For Database Connection
+(async () => {
+  // Runs As soon as the app starts
+  try {
+
+     mongoose.set("strictQuery",true);
+     await mongoose.connect(config.MONGODB_URL);
+      console.log("Connected to Database Successfully");
+
+      app.on("error", (error)=>{
+          console.log(error);
+          throw error;
+      });
+
+      const onListening = () => {
+          console.log(`
+          Listening on PORT : ${config.PORT}
+          It is a ${config.NODE_ENV} Environment
+          `);
+      };
+
+      app.listen(config.PORT, onListening);
+      
+  } catch (error) {
+      console.log ("ERROR", error);
+      throw error;
+  }
+})();
+
