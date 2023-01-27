@@ -22,6 +22,7 @@ import crypto from "crypto";
  ******************************************************/
 
 export const signUp = asyncHandler ( async (req, res) => {
+
     // Collect all Information
     const { name, email, password } = req.body;
 
@@ -85,6 +86,7 @@ export const signUp = asyncHandler ( async (req, res) => {
  ******************************************************/
 
 export const signIn = asyncHandler (async (req,res) => {
+
     //Collect Sign In Credentials
     const { email,password } = req.body;
 
@@ -239,6 +241,78 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     resetUrl.remove();
     text.remove();
     html.remove();
+    user.remove();
+
+});
+
+
+
+
+
+/******************************************************
+ * @RESET_PASSWORD
+ * @REQUEST_TYPE POST
+ * @Route http://localhost:4000/api/auth/password/:resetToken
+ * @Description User will be able to reset password based on url token
+ * @Parameters Token from the Url, Password & Confirm Password
+ * @Returns User Object
+ ******************************************************/
+
+export const resetPassword = asyncHandler(async (req,res) => {
+
+    // Grab Password Reset Token From Url
+    const { token : resetToken } = req.params;
+
+    //Grab Password and Confirm password from Frontend
+    const { password, confirmPassword } = req.body;
+
+    //Encrypt Password
+    const resetPasswordToken = crypto.createHash("sha3-256").update(resetToken).digest("hex");
+
+    //Find User on the Basis of Reset Password Token with a check that that Token Expiry Time is Greater than Current Time
+    const user = await User.findOne({
+      forgotPasswordToken : resetPasswordToken,
+      forgotPasswordExpiry : {$gt : Date.now()},
+    });
+
+    // If User Not Found Throw Error
+    if(!user) {
+      throw new AppError("Password Token is Invalid Or Expired.",400);
+    };
+
+    // If Password Does Not Match Confirm Password then Throw a Error 
+    if (password !== confirmPassword) {
+      throw new CustomError("Password & Confirm Password Does Not Match.",400);
+    };
+
+    // When All Checks Get Password then save the Current Password Given By User to the Database,
+    // Which will Automatically get Encrypted Before Saving into Database. 
+    user.password = password;
+
+    // Set Garbage Data to Undefined(Data Of No Use After New Password Got Set).
+    user.forgotPasswordToken = undefined;
+    user.forgotPasswordExpiry = undefined;
+
+    // Save Data to Database for Current User
+    await user.save();
+
+    // Generate Token & Send as Response
+    const token = user.getJwtToken();
+    user.password = undefined;
+
+    //Cookie Helper Method for Creating Cookies and sending to  Response
+    //SET COOKIE & BEARER TOKEN VALUE AS "token"
+    CookieHelper(token);
+
+    // Sending Response if User Reset Password Successfully
+    res.status(200).json({
+      success : true,
+      user,
+    });
+
+    // Unsetting resetPasswordToken, token, user to Free Up Space from the Memory
+    resetPasswordToken.remove();
+    token.remove();
     user.remove();
 
 });
