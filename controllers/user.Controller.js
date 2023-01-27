@@ -2,8 +2,11 @@ import User from "../models/user.Schema.js"
 import asyncHandler from "../services/asyncHandler.js";
 import AppError from "../services/appError.js";
 import EmailValidation from "../utils/emailValidation.js"
+import CookieHelper from "../utils/cookieHelper.js";
+import MailHelper from "../utils/mailHelper.js";
 import config from "../config/env.config.js";
 import crypto from "crypto";
+
 
 //------------------------ API ROUTES ------------------------
 
@@ -53,7 +56,7 @@ export const signUp = asyncHandler ( async (req, res) => {
 
     //Cookie Helper Method for Creating Cookies and sending to Response
     //SET COOKIE & BEARER TOKEN VALUE AS "token"
-    cookieHelper(token);
+    CookieHelper(token);
 
     // Sending Response if User Entry gets Sucessfully Created in the Database
     res.status(200).json({
@@ -90,6 +93,10 @@ export const signIn = asyncHandler (async (req,res) => {
       throw new AppError("Credentials cannot be empty!",400);
     };
 
+    // Check user is in the Database or not while Selecting Password
+    const user = await User.findOne({email}).select("+password");
+
+     // Check Wether User Exists or Not
     if(!user){
       throw new AppError("Invalid Credentials!",400);
     };
@@ -106,7 +113,7 @@ export const signIn = asyncHandler (async (req,res) => {
 
       //Cookie Helper Method for Creating Cookies and sending to Response
         //SET COOKIE & BEARER TOKEN VALUE AS "token"
-        cookieHelper(token);
+        CookieHelper(token);
 
       // Sending Response if User gets SignIn Successfully
       res.status(200).json({
@@ -142,7 +149,7 @@ export const signOut = asyncHandler(async (_req,res) => {
     //Cookie Helper Method for Creating Cookies and sending to Response 
     //SET COOKIE & BEARER TOKEN TO NULL
 
-    cookieHelper(null);
+    CookieHelper(null);
 
     // Sending Response if User SignOuts Successfully
     res.status(200).json({
@@ -152,3 +159,86 @@ export const signOut = asyncHandler(async (_req,res) => {
 
 });
 
+
+
+
+
+/******************************************************
+ * @FORGOT_PASSWORD
+ * @REQUEST_TYPE POST
+ * @Route http://localhost:4000/api/auth/password/forgot
+ * @Description User will submit an email and it will generate a token
+ * @Parameters Email
+ * @Returns Success Message => Email Sent
+ ******************************************************/
+
+export const forgotPassword = asyncHandler(async (req, res) => {
+    
+    // Grab Email from Frontend
+    const { email } = req.body;
+
+    // Checks Whether email is Valid or Not on the Bases Of Pattern or Whether Email is null
+    if(!EmailValidation(email)){
+      throw new AppError("Invalid Credentials",400);
+    };
+
+    // Query Database for User by Email Matching Criteria
+    const user = await User.findOne({ email });
+    
+    // Check Wether User Exists or Not
+    if(!user){
+      throw new CustomError("User Not Found.",404);
+    };
+
+    // Token Generation for Forgot Password using Predefined Method in User Schema "generateForgotPasswordToken"
+    const resetToken = user.generateForgotPasswordToken();
+
+    // Only Saving Data Without Running Validation in the Database - Forcefull Save
+    await user.save({validateBeforeSave : false});
+
+    //------------------------- Email Section -------------------------
+
+    // Custom Crafted Reset URL 
+    const resetUrl = `${req.protocol}://${req.host}/api/auth/password/reset/${resetToken}`;
+
+    //Custom Text Message
+    const text = `Your Password Reset Url is \n\n${resetUrl}\n\n`;
+
+    //Custom HTML For Heading Highlighting 
+    const html = `<h3><b>Password Reset For Account</b></h3>`;
+
+    try {
+        await MailHelper({
+          email : user.email,
+          subject : config.SMTP_MAIL_RESET_PASSWORD_SUBJECT,
+          text : text,
+          html : html,
+        });
+
+        //If Mail Sent Successfully Send Response
+        res.status(200).json({
+          success : true,
+          message : `Email Sent to ${user.email}`,
+          
+      });
+
+    } catch (error) {
+
+        // Rollback, Clear Fields & Save 
+        user.forgotPasswordToken = undefined;
+        user.forgotPasswordExpiry = undefined;
+
+        // Forcefull Save
+        await user.save({validateBeforeSave : false});
+
+        throw new CustomError(error.message||"Email Sent Failure",500);
+    };
+
+    // Unsetting resetToken, resetUrl, text, html, user to Free Up Space from the Memory
+    resetToken.remove();
+    resetUrl.remove();
+    text.remove();
+    html.remove();
+    user.remove();
+
+});
