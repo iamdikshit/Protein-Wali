@@ -1,4 +1,4 @@
-const emailValidation = (email) =>{
+const EmailValidation = (email) =>{
     //Checks Wether email is Valid or Not on the Bases Of Pattern Whether Email is null
     
     const validEmailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -6,4 +6,4 @@ const emailValidation = (email) =>{
     return (validEmailPattern.test(email));
 };
 
-export default emailValidation;
+export default EmailValidation;

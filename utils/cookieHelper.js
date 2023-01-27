@@ -1,6 +1,6 @@
-import expirationTime from "./expirationTime.js"
+import ExpirationTime from "./expirationTime.js"
 
-const cookieHelper = (token) =>{
+const CookieHelper = (token) =>{
 
     const expiration = {
         Days : 3,
@@ -10,7 +10,7 @@ const cookieHelper = (token) =>{
         milliSeconds : 1000,
     };
 
-    const timeOfExpiry = expirationTime(expiration.Days, expiration.Hours, expiration.Minutes, expiration.Seconds, expiration.milliSeconds);
+    const timeOfExpiry = ExpirationTime(expiration.Days, expiration.Hours, expiration.Minutes, expiration.Seconds, expiration.milliSeconds);
 
     //Cookie Options
     const CookieOptions = () => {
@@ -27,4 +27,4 @@ const cookieHelper = (token) =>{
     res.setHeader("Authorization", "Bearer "+ token);
 };
 
-export default cookieHelper;
+export default CookieHelper;
