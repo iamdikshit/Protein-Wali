@@ -15,7 +15,7 @@ import crypto from "crypto";
 /******************************************************
  * @SIGNUP
  * @REQUEST_TYPE POST
- * @Route http://localhost:4000/api/auth/signup
+ * @Route       /signup
  * @Description User signUp Controller for creating new user
  * @Parameters name, email, password
  * @Returns User Object
@@ -79,7 +79,7 @@ export const signUp = asyncHandler ( async (req, res) => {
 /******************************************************
  * @SIGNIN
  * @REQUEST_TYPE POST
- * @Route http://localhost:4000/api/auth/signin
+ * @Route       /signin
  * @Description User signIn Controller for signing in user
  * @Parameters email, password
  * @Returns User Object
@@ -140,7 +140,7 @@ export const signIn = asyncHandler (async (req,res) => {
 /******************************************************
  * @SIGNOUT
  * @REQUEST_TYPE POST
- * @Route http://localhost:4000/api/auth/signout
+ * @Route       /signout
  * @Description User signOut by clearing user cookies
  * @Parameters None
  * @Returns Success Message
@@ -168,7 +168,7 @@ export const signOut = asyncHandler(async (_req,res) => {
 /******************************************************
  * @FORGOT_PASSWORD
  * @REQUEST_TYPE POST
- * @Route http://localhost:4000/api/auth/password/forgot
+ * @Route       /password/forgot
  * @Description User will submit an email and it will generate a token
  * @Parameters Email
  * @Returns Success Message => Email Sent
@@ -252,7 +252,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 /******************************************************
  * @RESET_PASSWORD
  * @REQUEST_TYPE POST
- * @Route http://localhost:4000/api/auth/password/:resetToken
+ * @Route       /password/:resetToken
  * @Description User will be able to reset password based on url token
  * @Parameters Token from the Url, Password & Confirm Password
  * @Returns User Object
@@ -324,7 +324,7 @@ export const resetPassword = asyncHandler(async (req,res) => {
 /******************************************************
  * @CHANGE_PASSWORD
  * @REQUEST_TYPE POST
- * @Route http://localhost:4000/api/auth/password/change
+ * @Route       /password/change
  * @Description User will be able to change password if User is SignnedIn Or Authenticated
  * @Parameters Password & Confirm Password
  * @Returns Success Message
