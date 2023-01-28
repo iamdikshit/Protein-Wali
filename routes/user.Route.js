@@ -12,12 +12,12 @@ const Router = express.Router();
  * @Route_6   /password/change
  ******************************************************/
 
-Router.get('/signup',signUp);
-Router.get('/signin',signIn);
-Router.get('/signout',signOut);
-Router.get('/password/forgot',forgotPassword);
+Router.post('/signup',signUp);
+Router.post('/signin',signIn);
+Router.post('/signout',signOut);
+Router.post('/password/forgot',forgotPassword);
 Router.get('/password/:resetToken',resetPassword);
-Router.get('/password/change',changePassword);
+Router.post('/password/change',changePassword);
 
 
 
