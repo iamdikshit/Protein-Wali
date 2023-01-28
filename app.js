@@ -24,7 +24,7 @@ if (config.NODE_ENV.trim() == "development") {
 // API ENDPOINT FOR USER
 
 /******************************************************
- * @AUTH_ROUTES
+ * @USER_ROUTES
  * @Route_1   /api/v1/user/signup
  * @Route_2   /api/v1/user/signin
  * @Route_3   /api/v1/user/signout
