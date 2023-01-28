@@ -92,7 +92,7 @@ export const signIn = asyncHandler (async (req,res) => {
 
     // Validatation Check if email and password or either of them missing
     if(!email || !password){
-      throw new AppError("Credentials cannot be empty!",400);
+      throw new AppError("Credentials cannot be Empty!",400);
     };
 
     // Check user is in the Database or not while Selecting Password
@@ -306,12 +306,94 @@ export const resetPassword = asyncHandler(async (req,res) => {
 
     // Sending Response if User Reset Password Successfully
     res.status(200).json({
-      success : true,
-      user,
+        success : true,
+        user,
     });
 
     // Unsetting resetPasswordToken, token, user to Free Up Space from the Memory
     resetPasswordToken.remove();
+    token.remove();
+    user.remove();
+
+});
+
+
+
+
+
+/******************************************************
+ * @CHANGE_PASSWORD
+ * @REQUEST_TYPE POST
+ * @Route http://localhost:4000/api/auth/password/change
+ * @Description User will be able to change password if User is SignnedIn Or Authenticated
+ * @Parameters Password & Confirm Password
+ * @Returns Success Message
+ ******************************************************/
+
+export const changePassword = asyncHandler(async (req, res) => {
+
+    // Grab Email from req.user
+    const {email} = req.user;
+
+    // Check user is in the Database or not while Selecting Password
+    const user = await User.findOne({email}).select("+password");
+
+    // If User Not Found Throw Error
+    if(!user){
+      throw new CustomError("User Not Found.",404);
+    };
+
+    // Grab Password and Forgot Password from the Frontend
+    const { oldPassword, newPassword, confirmPassword } = req.body;
+
+    // Check Whether Credentials is Empty if true then Throw Error
+    if (!oldPassword || !newPassword || !confirmPassword)
+    {
+        throw new AppError("Credentials cannot be Empty!",400);
+    };
+
+    // Compare Password Using Predefined Method in Schema "comparePassword"
+    const isOldPasswordMatched = await user.comparePassword(oldPassword);
+
+    // If Old Password Does not Match in the Database then Throw Error
+    if (!isOldPasswordMatched){
+        throw new AppError("Invalid Credentials!",400);
+    };
+
+    // If Password Does Not Match Confirm Password then Throw a Error 
+    if (newPassword !== confirmPassword) {
+      throw new AppError("Password & Confirm Password Does Not Match.",400);
+    };
+
+
+    /* 
+    When All Checks Get Password then save the Current Password Given By User to the Database,
+    Which will Automatically get Encrypted Before Saving into Database. 
+    */
+
+    user.password = newPassword;
+
+    await user.save();
+
+    // Generate Token & Send as Response
+    const token = user.getJwtToken();
+    user.password = undefined;
+
+    /* 
+    Cookie Helper Method for Creating Cookies and sending to Response
+    SET COOKIE & BEARER TOKEN VALUE AS "token"
+    */
+    CookieHelper(token);
+
+    // Sending Response if User Changed Password Successfully
+    res.status(200).json({
+        success : true,
+        message : "Password Changed",
+        user,
+    });
+
+    // Unsetting isOldPasswordMatched, token, user to Free Up Space from the Memory
+    isOldPasswordMatched.remove();
     token.remove();
     user.remove();
 
