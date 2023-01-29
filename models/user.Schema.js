@@ -29,6 +29,38 @@ const userSchema = mongoose.Schema(
             select : false,
         },
 
+        phone : {
+             type : String,
+             maxLength : [15, "Phone Number cannot Exceed 15 Digits." ]
+        },
+
+        address : {
+            number : {
+                type : String,
+            },
+            area : {
+                type : String,
+            },
+            city : {
+                type : String,
+            },
+            state : {
+                type : String,
+            },
+            pincode : {
+                type : Number,
+            },
+            country : {
+                type : String,
+                default : "India",
+            },
+        },
+
+        isActive : {
+            type : Boolean,
+            default : true,
+        },
+
         role : {
             type : String,
             enum : Object.values(AuthRoles),
