@@ -17,18 +17,24 @@ import crypto from "crypto";
  * @REQUEST_TYPE POST
  * @Route       /signup
  * @Description User signUp Controller for creating new user
- * @Parameters name, email, password
+ * @Middleware None
+ * @Parameters name, email, password, confirmPassword
  * @Returns User Object
  ******************************************************/
 
 export const signUp = asyncHandler ( async (req, res) => {
 
     // Collect all Information
-    const { name, email, password } = req.body;
+    const { name, email, password, confirmPassword } = req.body;
 
     // Validate the Data if exists
-    if(!name || !email || !password){
+    if(!name || !email || !password ||!confirmPassword){
       throw new AppError("Please Fill All Fields",400);
+    };
+
+    // If Password Does Not Match Confirm Password then Throw a Error 
+    if (password !== confirmPassword) {
+      throw new AppError("Password & Confirm Password Does Not Match.",400);
     };
 
     // Check If User Exists
@@ -81,6 +87,7 @@ export const signUp = asyncHandler ( async (req, res) => {
  * @REQUEST_TYPE POST
  * @Route       /signin
  * @Description User signIn Controller for signing in user
+ * @Middleware None
  * @Parameters email, password
  * @Returns User Object
  ******************************************************/
@@ -142,6 +149,7 @@ export const signIn = asyncHandler (async (req,res) => {
  * @REQUEST_TYPE POST
  * @Route       /signout
  * @Description User signOut by clearing user cookies
+ * @Middleware None
  * @Parameters None
  * @Returns Success Message
  ******************************************************/
@@ -170,6 +178,7 @@ export const signOut = asyncHandler(async (_req,res) => {
  * @REQUEST_TYPE POST
  * @Route       /password/forgot
  * @Description User will submit an email and it will generate a token
+ * @Middleware None
  * @Parameters Email
  * @Returns Success Message => Email Sent
  ******************************************************/
@@ -189,7 +198,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     
     // Check Wether User Exists or Not
     if(!user){
-      throw new CustomError("User Not Found.",404);
+      throw new AppError("User Not Found.",404);
     };
 
     // Token Generation for Forgot Password using Predefined Method in User Schema "generateForgotPasswordToken"
@@ -233,7 +242,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
         // Forcefull Save
         await user.save({validateBeforeSave : false});
 
-        throw new CustomError(error.message||"Email Sent Failure",500);
+        throw new AppError(error.message||"Email Sent Failure",500);
     };
 
     // Unsetting resetToken, resetUrl, text, html, user to Free Up Space from the Memory
@@ -254,6 +263,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
  * @REQUEST_TYPE POST
  * @Route       /password/:resetToken
  * @Description User will be able to reset password based on url token
+ * @Middleware None
  * @Parameters Token from the Url, Password & Confirm Password
  * @Returns User Object
  ******************************************************/
@@ -282,7 +292,7 @@ export const resetPassword = asyncHandler(async (req,res) => {
 
     // If Password Does Not Match Confirm Password then Throw a Error 
     if (password !== confirmPassword) {
-      throw new CustomError("Password & Confirm Password Does Not Match.",400);
+      throw new AppError("Password & Confirm Password Does Not Match.",400);
     };
 
     // When All Checks Get Password then save the Current Password Given By User to the Database,
@@ -326,6 +336,7 @@ export const resetPassword = asyncHandler(async (req,res) => {
  * @REQUEST_TYPE POST
  * @Route       /password/change
  * @Description User will be able to change password if User is SignnedIn Or Authenticated
+ * @Middleware auth.Middleware
  * @Parameters Password & Confirm Password
  * @Returns Success Message
  ******************************************************/
@@ -340,7 +351,7 @@ export const changePassword = asyncHandler(async (req, res) => {
 
     // If User Not Found Throw Error
     if(!user){
-      throw new CustomError("User Not Found.",404);
+      throw new AppError("User Not Found.",404);
     };
 
     // Grab Password and Forgot Password from the Frontend
