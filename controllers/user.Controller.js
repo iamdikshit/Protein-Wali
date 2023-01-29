@@ -137,7 +137,32 @@ export const deleteUser = asyncHandler(async (req, res) => {
 
 
 
+/******************************************************
+ * @GET_USER_PROFILE
+ * @REQUEST_TYPE GET
+ * @Route       /user/profile
+ * @Description Check for token and Populate req.user
+ * @Middleware auth.Middleware
+ * @Parameters None
+ * @Returns User Object
+ ******************************************************/
 
+export const getProfile = asyncHandler(async (req, res)=>{
+    
+    // Grab User from request
+    const {user} = req;
+
+    // If User Not Found Throw Error
+    if(!user){
+        throw new AppError("User Not Found.",404);
+    };
+
+     // Sending Response if User is Found
+    res.status(200).json({
+        success : true,
+        user,
+    });
+});
 
 
 
