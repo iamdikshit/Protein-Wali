@@ -1,7 +1,7 @@
 import asyncHandler from "../services/asyncHandler.js";
 import AppError from "../services/appError.js";
 
-export const hasRoles = asyncHandler((...permittedRoles) => {
+export const PermittedRoles = asyncHandler((...permittedRoles) => {
      
       // Middleware for doing Role-Based Permissions
 
