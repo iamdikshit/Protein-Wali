@@ -171,6 +171,7 @@ export const getProfile = asyncHandler(async (req, res)=>{
  * @Route       /user/:id
  * @Description 1.Controller used for Getting Single User Detail
  *              2. Moderator and Admin can get Single User detail
+ * @Middleware roles.Middleware
  * @Parameters ID
  * @Returns User Object
  ******************************************************/
@@ -210,6 +211,7 @@ export const getUserById = asyncHandler (async (req, res) => {
  * @Route       /product/all
  * @Description 1.Controller used for Getting all Users Details
  *              2. Moderator and Admin can get all the Users
+ * @Middleware roles.Middleware
  * @Parameters None
  * @Returns User Object
  ******************************************************/
