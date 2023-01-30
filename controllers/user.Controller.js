@@ -83,7 +83,7 @@ export const updateUser = asyncHandler(async (req, res) =>{
         // Sending Response if Collection Name gets Updated Sucessfully in the Database
         res.status.json({
             success : true,
-            message : "User Updated Successfully",
+            message : `User Updated Successfully with ID : ${userId}`,
         });
 
         // Unsetting updatedCollection to Free Up Space from the Memory
@@ -123,7 +123,7 @@ export const deleteUser = asyncHandler(async (req, res) => {
     // Sending Response if User gets Deleted Sucessfully from the Database
     res.status.json({
         success : true,
-        message : "User Deleted Successfully", 
+        message : `User Deleted Successfully with ID : ${userId}`, 
     });
 
     // Unsetting deletedCollection to Free Up Space from the Memory
@@ -165,7 +165,76 @@ export const getProfile = asyncHandler(async (req, res)=>{
 });
 
 
+/******************************************************
+ * @GET_USER_BY_ID
+ * @REQUEST_TYPE GET
+ * @Route       /user/:id
+ * @Description 1.Controller used for Getting Single User Detail
+ *              2. Moderator and Admin can get Single User detail
+ * @Parameters ID
+ * @Returns User Object
+ ******************************************************/
 
+export const getUserById = asyncHandler (async (req, res) => {
+
+    // Get id from URL as userId
+    const {id : userId} = req.params;
+
+    const user = await User.findById(userId);
+
+    // CHECK : When User Not Found throw Error
+    if(!user) {
+         throw new AppError("No User was Found.",404);
+    };
+
+    // When Successful Send Response
+    res.status(201).json({
+        success : true,
+        message : `User Found with ID : ${userId}`,
+        user,
+    });
+
+    // Unsetting product, to Free Up Space from the Memory
+    user.remove();
+
+});
+
+
+
+
+
+
+/******************************************************
+ * @GET_ALL_USER
+ * @REQUEST_TYPE GET
+ * @Route       /product/all
+ * @Description 1.Controller used for Getting all Users Details
+ *              2. Moderator and Admin can get all the Users
+ * @Parameters None
+ * @Returns User Object
+ ******************************************************/
+
+export const getAllUsers = asyncHandler (async (_req, res) => {
+
+    // Find All Products From The Database
+    const users = await User.find({});
+    
+    // CHECK : When User Not Found throw Error
+    if(!users) {
+         throw new AppError("No User was Found",404);
+    };
+
+    // When Successful Send Response
+    res.status(201).json({
+        success : true,
+        message : "Fetched All Users Details Successfully.",
+        users,
+    });
+
+    // Unsetting products, to Free Up Space from the Memory
+    users.remove();
+
+});
 
 
 
