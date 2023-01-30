@@ -5,7 +5,7 @@ import AppError from "../services/appError.js";
 import config from "../config/env.config.js";
 
 
-export const isSignnedIn = asyncHandler(async (req, _res, next) => {
+export const Authentication = asyncHandler(async (req, _res, next) => {
        
        // Declaring token so that it could be used in whole block
        let token;
