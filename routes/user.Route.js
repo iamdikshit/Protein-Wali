@@ -40,23 +40,23 @@ const Router = express.Router();
  *                                         @MIDDLEWARE   : Authentication
  * 
  * @Route_2         /delete/:id            @REQUEST_TYPE : DELETE
- *                                         @MIDDLEWARE   : PermittedRoles(ADMIN)
+ *                                         @MIDDLEWARE   : Authentication, PermittedRoles(ADMIN)
  * 
  * @Route_3         /profile               @REQUEST_TYPE : POST
  *                                         @MIDDLEWARE   : Authentication
  * 
  * @Route_4         /:id                   @REQUEST_TYPE : POST
- *                                         @MIDDLEWARE   : PermittedRoles(MODERATOR, ADMIN)
+ *                                         @MIDDLEWARE   : Authentication, PermittedRoles(MODERATOR, ADMIN)
  * 
  * @Route_5        /all                    @REQUEST_TYPE : POST
- *                                         @MIDDLEWARE   : PermittedRoles(MODERATOR, ADMIN)
+ *                                         @MIDDLEWARE   : Authentication, PermittedRoles(MODERATOR, ADMIN)
  ******************************************************************************************/
 
   Router.put("/update/:id", Authentication, updateUser);
-  Router.delete("/delete/:id", PermittedRoles(Roles.ADMIN), deleteUser);
+  Router.delete("/delete/:id", Authentication, PermittedRoles(Roles.ADMIN), deleteUser);
   Router.get("/profile", Authentication, getProfile);
-  Router.get("/:id", PermittedRoles(Roles.MODERATOR, Roles.ADMIN), getUserById);
-  Router.get("/all", PermittedRoles(Roles.MODERATOR, Roles.ADMIN), getAllUsers);
+  Router.get("/:id", Authentication, PermittedRoles(Roles.MODERATOR, Roles.ADMIN), getUserById);
+  Router.get("/all", Authentication, PermittedRoles(Roles.MODERATOR, Roles.ADMIN), getAllUsers);
 
 
 
