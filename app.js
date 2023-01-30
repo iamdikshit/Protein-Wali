@@ -24,13 +24,20 @@ if (config.NODE_ENV.trim() == "development") {
 // API ENDPOINT FOR USER
 
 /******************************************************
- * @USER_ROUTES
+ * @AUTH_ROUTES
  * @Route_1   /api/v1/user/signup
  * @Route_2   /api/v1/user/signin
  * @Route_3   /api/v1/user/signout
  * @Route_4   /api/v1/user/password/forgot
  * @Route_5   /api/v1/user/password/:resetToken
  * @Route_6   /api/v1/user/password/change
+
+ * @USER_ROUTES
+ * @Route_1   /api/v1/user/update/:id
+ * @Route_2   /api/v1/user/delete/:id
+ * @Route_3   /api/v1/user/profile
+ * @Route_4   /api/v1/user/:id
+ * @Route_5   /api/v1/user/all
  ******************************************************/
 app.use("/api/v1/user",UserRoute);
 

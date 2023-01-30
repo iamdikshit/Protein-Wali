@@ -8,7 +8,7 @@ import PhoneNumberValidation from "../utils/phoneNumberValidation.js"
 /******************************************************
  * @UPDATE_USER
  * @REQUEST_TYPE PUT
- * @Route       /user/update
+ * @Route       /update/:id
  * @Description User Controller for Updating Existing User
  * @Middleware roles.Middleware
  * @Parameters id
@@ -100,7 +100,7 @@ export const updateUser = asyncHandler(async (req, res) =>{
 /******************************************************
  * @DELETE_USER
  * @REQUEST_TYPE DELETE
- * @Route       /user/delete
+ * @Route       /delete/:id
  * @Description User Controller for Deleting Existing User
  * @Middleware roles.Middleware
  * @Parameters id
@@ -140,7 +140,7 @@ export const deleteUser = asyncHandler(async (req, res) => {
 /******************************************************
  * @GET_USER_PROFILE
  * @REQUEST_TYPE GET
- * @Route       /user/profile
+ * @Route       /profile
  * @Description Check for token and Populate req.user
  * @Middleware auth.Middleware
  * @Parameters None
@@ -168,7 +168,7 @@ export const getProfile = asyncHandler(async (req, res)=>{
 /******************************************************
  * @GET_USER_BY_ID
  * @REQUEST_TYPE GET
- * @Route       /user/:id
+ * @Route       /:id
  * @Description 1.Controller used for Getting Single User Detail
  *              2. Moderator and Admin can get Single User detail
  * @Middleware roles.Middleware
@@ -208,7 +208,7 @@ export const getUserById = asyncHandler (async (req, res) => {
 /******************************************************
  * @GET_ALL_USER
  * @REQUEST_TYPE GET
- * @Route       /product/all
+ * @Route       /all
  * @Description 1.Controller used for Getting all Users Details
  *              2. Moderator and Admin can get all the Users
  * @Middleware roles.Middleware
