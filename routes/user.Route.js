@@ -15,7 +15,7 @@ const Router = express.Router();
  * @Route_2   /signin                 @REQUEST_TYPE : POST
  * @Route_3   /signout                @REQUEST_TYPE : POST
  * @Route_4   /password/forgot        @REQUEST_TYPE : POST
- * @Route_5   /password/:resetToken   @REQUEST_TYPE : POST
+ * @Route_5   /password/reset/:resetToken   @REQUEST_TYPE : POST
  * @Route_6   /password/change        @REQUEST_TYPE : POST
  *                                    @MIDDLEWARE   : Authentication
  *****************************************************************/
@@ -24,7 +24,7 @@ const Router = express.Router();
   Router.post("/signin", signIn);
   Router.post("/signout", signOut);
   Router.post("/password/forgot", forgotPassword);
-  Router.get("/password/:resetToken", resetPassword);
+  Router.get("/password/reset/:resetToken", resetPassword);
   Router.post("/password/change", Authentication ,changePassword);
 
 

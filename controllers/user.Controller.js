@@ -241,20 +241,3 @@ export const getAllUsers = asyncHandler (async (_req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-/*
-Update User : All
-Delete User : Admin
-GetAllUser : Admin, Moderator
-getUserbyId : Admin, Moderator
-*/

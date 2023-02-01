@@ -2,7 +2,7 @@ import User from "../models/user.Schema.js"
 import asyncHandler from "../services/asyncHandler.js";
 import AppError from "../services/appError.js";
 import EmailValidation from "../utils/emailValidation.js"
-import CookieHelper from "../utils/cookieHelper.js";
+import CookieOptions from "../utils/cookieOptions.js";
 import MailHelper from "../utils/mailHelper.js";
 import config from "../config/env.config.js";
 import crypto from "crypto";
@@ -57,24 +57,22 @@ export const signUp = asyncHandler ( async (req, res) => {
     });
 
     const token = user.getJwtToken();
+    console.log(token);
 
     // Setting Password undefined so that it couldn't be passed through token
     user.password = undefined;
 
-    //Cookie Helper Method for Creating Cookies and sending to Response
+
     //SET COOKIE & BEARER TOKEN VALUE AS "token"
-    CookieHelper(token);
+    res.cookie("token", token, CookieOptions);
+
 
     // Sending Response if User Entry gets Sucessfully Created in the Database
-    res.status(200).json({
+    return res.status(200).json({
       success : true,
       token,
     });
 
-    // Unsetting existingUser, token, user, to Free Up Space from the Memory
-    existingUser.remove();
-    token.remove();
-    user.remove();
 
 });
 
@@ -120,20 +118,15 @@ export const signIn = asyncHandler (async (req,res) => {
       // Setting Password undefined so that it couldn't be passed through token
       user.password = undefined;
 
-      //Cookie Helper Method for Creating Cookies and sending to Response
-        //SET COOKIE & BEARER TOKEN VALUE AS "token"
-        CookieHelper(token);
+      //SET COOKIE & BEARER TOKEN VALUE AS "token"
+      res.cookie("token", token, CookieOptions);
 
       // Sending Response if User gets SignIn Successfully
-      res.status(200).json({
+      return res.status(200).json({
         success : true,
         token,
       });
 
-      // Unsetting isPasswordMatched, user to Free Up Space from the Memory
-
-        isPasswordMatched.remove();
-        user.remove();
     };
 
     throw new AppError("Invalid Credentials!",400);
@@ -159,10 +152,11 @@ export const signOut = asyncHandler(async (_req,res) => {
     //Cookie Helper Method for Creating Cookies and sending to Response 
     //SET COOKIE & BEARER TOKEN TO NULL
 
-    CookieHelper(null);
+    //SET COOKIE & BEARER TOKEN VALUE AS "token"
+    res.cookie("token", null, CookieOptions);
 
     // Sending Response if User SignOuts Successfully
-    res.status(200).json({
+    return res.status(200).json({
       success : true,
       message : "Sign Out"
     });
@@ -210,13 +204,14 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     //------------------------- Email Section -------------------------
 
     // Custom Crafted Reset URL 
-    const resetUrl = `${req.protocol}://${req.host}/api/auth/password/reset/${resetToken}`;
+    const resetUrl = `${req.protocol}://${req.host}/api/v1/user/password/reset/${resetToken}`;
 
     //Custom Text Message
     const text = `Your Password Reset Url is \n\n${resetUrl}\n\n`;
 
     //Custom HTML For Heading Highlighting 
-    const html = `<h3><b>Password Reset For Account</b></h3>`;
+    const html = `<h3><b>Password Reset For Account</b><br>
+    <a href="${resetUrl}">Click Here to Reset Password</a></h3>`;
 
     try {
         await MailHelper({
@@ -227,7 +222,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
         });
 
         //If Mail Sent Successfully Send Response
-        res.status(200).json({
+        return res.status(200).json({
           success : true,
           message : `Email Sent to ${user.email}`,
           
@@ -245,13 +240,6 @@ export const forgotPassword = asyncHandler(async (req, res) => {
         throw new AppError(error.message||"Email Sent Failure",500);
     };
 
-    // Unsetting resetToken, resetUrl, text, html, user to Free Up Space from the Memory
-    resetToken.remove();
-    resetUrl.remove();
-    text.remove();
-    html.remove();
-    user.remove();
-
 });
 
 
@@ -261,7 +249,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 /******************************************************
  * @RESET_PASSWORD
  * @REQUEST_TYPE POST
- * @Route       /password/:resetToken
+ * @Route       /password/reset/:resetToken
  * @Description User will be able to reset password based on url token
  * @Middleware None
  * @Parameters Token from the Url, Password & Confirm Password
@@ -278,6 +266,7 @@ export const resetPassword = asyncHandler(async (req,res) => {
 
     //Encrypt Password
     const resetPasswordToken = crypto.createHash("sha3-256").update(resetToken).digest("hex");
+    console.log(resetPasswordToken);
 
     //Find User on the Basis of Reset Password Token with a check that that Token Expiry Time is Greater than Current Time
     const user = await User.findOne({
@@ -310,20 +299,14 @@ export const resetPassword = asyncHandler(async (req,res) => {
     const token = user.getJwtToken();
     user.password = undefined;
 
-    //Cookie Helper Method for Creating Cookies and sending to  Response
     //SET COOKIE & BEARER TOKEN VALUE AS "token"
-    CookieHelper(token);
+    res.cookie("token", token, CookieOptions);
 
     // Sending Response if User Reset Password Successfully
-    res.status(200).json({
+    return res.status(200).json({
         success : true,
         user,
     });
-
-    // Unsetting resetPasswordToken, token, user to Free Up Space from the Memory
-    resetPasswordToken.remove();
-    token.remove();
-    user.remove();
 
 });
 
@@ -390,22 +373,14 @@ export const changePassword = asyncHandler(async (req, res) => {
     const token = user.getJwtToken();
     user.password = undefined;
 
-    /* 
-    Cookie Helper Method for Creating Cookies and sending to Response
-    SET COOKIE & BEARER TOKEN VALUE AS "token"
-    */
-    CookieHelper(token);
+    //SET COOKIE & BEARER TOKEN VALUE AS "token"
+    res.cookie("token", token, CookieOptions);
 
     // Sending Response if User Changed Password Successfully
-    res.status(200).json({
+    return res.status(200).json({
         success : true,
         message : "Password Changed",
         user,
     });
-
-    // Unsetting isOldPasswordMatched, token, user to Free Up Space from the Memory
-    isOldPasswordMatched.remove();
-    token.remove();
-    user.remove();
 
 });

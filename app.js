@@ -2,7 +2,7 @@ import express from "express";
 import morgan from "morgan";
 import config from "./config/env.config.js"
 import UserRoute from "./routes/user.Route.js";
-import AppError from "./utils/appError.js";
+import AppError from "./services/appError.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import globalErroHandller from "./controllers/error.Controller.js";
@@ -56,7 +56,7 @@ app.all("*", (req, _res, next) => {
 * @UniversalGlobalHandler
 
 * Using this function we can handle the error from
-* Entire project by using CatchAsync Function
+* Entire project by using Async Handler Function
 **************************************************/
 app.use(globalErroHandller);
 
