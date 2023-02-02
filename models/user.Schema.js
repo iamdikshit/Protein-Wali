@@ -106,7 +106,8 @@ userSchema.methods = {
     // Generate JWT TOKEN
 
     getJwtToken : function () {
-        return JWT.sign(
+        
+        const jwtToken =  JWT.sign(
             {
                 _id : this._id,
                 role : this.role,
@@ -118,6 +119,8 @@ userSchema.methods = {
                 expiresIn : config.JWT_EXPIRY
             },
         );
+
+        return jwtToken;
     },
 
     // Generate Forgot Password Token TOKEN

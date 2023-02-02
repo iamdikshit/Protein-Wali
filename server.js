@@ -20,7 +20,7 @@ import mongoose from "mongoose";
       const onListening = () => {
           console.log(`
           Listening on PORT : ${config.PORT}
-          It is a ${config.NODE_ENV} Environment
+          It is a ${(config.NODE_ENV).toUpperCase()} Environment
           `);
       };
 
