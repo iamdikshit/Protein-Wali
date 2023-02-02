@@ -70,6 +70,7 @@ export const signUp = asyncHandler ( async (req, res) => {
     // Sending Response if User Entry gets Sucessfully Created in the Database
     return res.status(200).json({
       success : true,
+      message : "User Sign Up Successfull",
       token,
     });
 
@@ -113,17 +114,19 @@ export const signIn = asyncHandler (async (req,res) => {
 
     if(ispasswordMatched){
       // Token Generation using Predefined Method in User Schema
-      const token = user.getJwtToken;
-
+      const token = user.getJwtToken();
+      console.log(token);
       // Setting Password undefined so that it couldn't be passed through token
       user.password = undefined;
 
       //SET COOKIE & BEARER TOKEN VALUE AS "token"
       res.cookie("token", token, CookieOptions);
 
+
       // Sending Response if User gets SignIn Successfully
       return res.status(200).json({
         success : true,
+        message : "User Sign In Successfull",
         token,
       });
 
@@ -204,7 +207,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     //------------------------- Email Section -------------------------
 
     // Custom Crafted Reset URL 
-    const resetUrl = `${req.protocol}://${req.host}/api/v1/user/password/reset/${resetToken}`;
+    const resetUrl = `${req.protocol}://${req.hostname}:${config.PORT}/api/v1/user/password/reset/${resetToken}`;
 
     //Custom Text Message
     const text = `Your Password Reset Url is \n\n${resetUrl}\n\n`;
@@ -248,7 +251,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 
 /******************************************************
  * @RESET_PASSWORD
- * @REQUEST_TYPE POST
+ * @REQUEST_TYPE PATCH
  * @Route       /password/reset/:resetToken
  * @Description User will be able to reset password based on url token
  * @Middleware None
@@ -259,7 +262,8 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 export const resetPassword = asyncHandler(async (req,res) => {
 
     // Grab Password Reset Token From Url
-    const { token : resetToken } = req.params;
+    const { resetToken } = req.params;
+    console.log(resetToken);
 
     //Grab Password and Confirm password from Frontend
     const { password, confirmPassword } = req.body;
@@ -305,7 +309,8 @@ export const resetPassword = asyncHandler(async (req,res) => {
     // Sending Response if User Reset Password Successfully
     return res.status(200).json({
         success : true,
-        user,
+        message : "Password Reset Successfully",
+        token,
     });
 
 });
@@ -316,7 +321,7 @@ export const resetPassword = asyncHandler(async (req,res) => {
 
 /******************************************************
  * @CHANGE_PASSWORD
- * @REQUEST_TYPE POST
+ * @REQUEST_TYPE PATCH
  * @Route       /password/change
  * @Description User will be able to change password if User is SignnedIn Or Authenticated
  * @Middleware auth.Middleware
@@ -327,7 +332,7 @@ export const resetPassword = asyncHandler(async (req,res) => {
 export const changePassword = asyncHandler(async (req, res) => {
 
     // Grab Email from req.user
-    const {email} = req.user;
+    const { email } = req.user;
 
     // Check user is in the Database or not while Selecting Password
     const user = await User.findOne({email}).select("+password");
@@ -380,7 +385,7 @@ export const changePassword = asyncHandler(async (req, res) => {
     return res.status(200).json({
         success : true,
         message : "Password Changed",
-        user,
+        token,
     });
 
 });

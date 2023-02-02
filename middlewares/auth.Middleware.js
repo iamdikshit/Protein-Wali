@@ -6,16 +6,16 @@ import config from "../config/env.config.js";
 
 
 export const Authentication = asyncHandler(async (req, _res, next) => {
-       
+     
        // Declaring token so that it could be used in whole block
        let token;
 
        // Checking token in Cookies & in Bearer Token
        if (req.cookies.token || 
-          (req.headers.Authorization && req.headers.Authorization.startsWith("Bearer")))
+          (req.headers.authorization && req.headers.authorization.startsWith("Bearer")))
        {
             // Fetching Token Value from either Cookies or From Bearer Token and Storing in "token".
-            token = req.cookies.token || req.headers.Authorization.split(" ")[1];
+            token = req.cookies.token || req.headers.authorization.split(" ")[1];
        };
 
        // Checking Whether token (tokenValue) is present or not
