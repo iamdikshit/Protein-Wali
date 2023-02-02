@@ -6,7 +6,7 @@ import config from "../config/env.config.js";
 
 
 export const Authentication = asyncHandler(async (req, _res, next) => {
-     
+
        // Declaring token so that it could be used in whole block
        let token;
 
@@ -36,7 +36,7 @@ export const Authentication = asyncHandler(async (req, _res, next) => {
 
        } 
        catch (error) {
-            throw new AppError("Not Authorized to Access this Route.",401);
+            next( new AppError("Not Authorized to Access this Route.",401) );
        };
 
 });
