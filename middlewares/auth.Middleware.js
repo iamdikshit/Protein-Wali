@@ -30,7 +30,7 @@ export const Authentication = asyncHandler(async (req, _res, next) => {
         const decodedJwtPayload = JWT.verify(token, config.JWT_SECRET);
 
         // Finding User based on "_id" and with Selected Fields (Name, Email, Role) and Sending it to req.user
-        req.user = await User.findById(decodedJwtPayload._id, "name email role");
+        req.user = await User.findById(decodedJwtPayload._id, "name email address phone isActive role");
 
         next();
 

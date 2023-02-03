@@ -30,12 +30,24 @@ const userSchema = mongoose.Schema(
         },
 
         phone : {
-             type : String,
-             maxLength : [15, "Phone Number cannot Exceed 15 Digits." ]
+
+             primary : {
+                type : String,
+                maxLength : [15, "Phone Number cannot Exceed 15 Digits." ],
+             },
+
+             alternate : {
+                type : String,
+                maxLength : [15, "Phone Number cannot Exceed 15 Digits." ],
+             },
         },
 
         address : {
-            number : {
+
+            uid : {
+                type : String,
+            },
+            street : {
                 type : String,
             },
             area : {
@@ -49,11 +61,16 @@ const userSchema = mongoose.Schema(
             },
             pincode : {
                 type : Number,
+                maxLength : [10, "Pincode cannot Exceed 10 Digits." ]
+            },
+            landmark : {
+                type : String,
             },
             country : {
                 type : String,
                 default : "India",
             },
+            
         },
 
         isActive : {
