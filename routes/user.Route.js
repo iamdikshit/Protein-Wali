@@ -15,7 +15,7 @@ const Router = express.Router();
  * @Route_2   /signin                 @REQUEST_TYPE : POST
  * @Route_3   /signout                @REQUEST_TYPE : POST
  * @Route_4   /password/forgot        @REQUEST_TYPE : POST
- * @Route_5   /password/reset/:resetToken   @REQUEST_TYPE : PATCH
+ * @Route_5   /password/reset/:token  @REQUEST_TYPE : PATCH
  * @Route_6   /password/change        @REQUEST_TYPE : PATCH
  *                                    @MIDDLEWARE   : Authentication
  *****************************************************************/
@@ -24,7 +24,7 @@ const Router = express.Router();
   Router.post("/signin", signIn);
   Router.post("/signout", signOut);
   Router.post("/password/forgot", forgotPassword);
-  Router.patch("/password/reset/:resetToken", resetPassword);
+  Router.patch("/password/reset/:token", resetPassword);
   Router.patch("/password/change", Authentication ,changePassword);
 
 
@@ -45,18 +45,18 @@ const Router = express.Router();
  * @Route_3         /profile               @REQUEST_TYPE : POST
  *                                         @MIDDLEWARE   : Authentication
  * 
- * @Route_4         /:id                   @REQUEST_TYPE : POST
+ * @Route_4         /:id             @REQUEST_TYPE : POST
  *                                         @MIDDLEWARE   : Authentication, PermittedRoles(MODERATOR, ADMIN)
  * 
- * @Route_5        /all                    @REQUEST_TYPE : POST
+ * @Route_5        /                       @REQUEST_TYPE : POST
  *                                         @MIDDLEWARE   : Authentication, PermittedRoles(MODERATOR, ADMIN)
  ******************************************************************************************/
 
   Router.put("/update/:id", Authentication, updateUser);
   Router.delete("/delete/:id", Authentication, PermittedRoles(Roles.ADMIN), deleteUser);
   Router.get("/profile", Authentication, getProfile);
-  Router.get("/:id", Authentication, PermittedRoles(Roles.MODERATOR, Roles.ADMIN), getUserById);
   Router.get("/all", Authentication, PermittedRoles(Roles.MODERATOR, Roles.ADMIN), getAllUsers);
+  Router.get("/:id", Authentication, PermittedRoles(Roles.MODERATOR, Roles.ADMIN), getUserById);
 
 
 

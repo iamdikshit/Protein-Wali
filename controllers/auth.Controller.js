@@ -70,7 +70,7 @@ export const signUp = asyncHandler ( async (req, res) => {
     // Sending Response if User Entry gets Sucessfully Created in the Database
     return res.status(200).json({
       success : true,
-      message : "User Sign Up Successfull",
+      message : "User Signned Up Successfully",
       token,
     });
 
@@ -126,7 +126,7 @@ export const signIn = asyncHandler (async (req,res) => {
       // Sending Response if User gets SignIn Successfully
       return res.status(200).json({
         success : true,
-        message : "User Sign In Successfull",
+        message : "User Signned In Successfully",
         token,
       });
 
@@ -252,7 +252,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 /******************************************************
  * @RESET_PASSWORD
  * @REQUEST_TYPE PATCH
- * @Route       /password/reset/:resetToken
+ * @Route       /password/reset/:token
  * @Description User will be able to reset password based on url token
  * @Middleware None
  * @Parameters Token from the Url, Password & Confirm Password
@@ -262,7 +262,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 export const resetPassword = asyncHandler(async (req,res) => {
 
     // Grab Password Reset Token From Url
-    const { resetToken } = req.params;
+    const { token: resetToken } = req.params;
     console.log(resetToken);
 
     //Grab Password and Confirm password from Frontend
@@ -359,11 +359,16 @@ export const changePassword = asyncHandler(async (req, res) => {
         throw new AppError("Invalid Credentials!",400);
     };
 
+    
     // If Password Does Not Match Confirm Password then Throw a Error 
     if (newPassword !== confirmPassword) {
       throw new AppError("Password & Confirm Password Does Not Match.",400);
     };
-
+    
+    // If Old Password Matched New Password then Throw a Error 
+    if (oldPassword === newPassword) {
+      throw new AppError("Old Password & New Password Cannot be Same.",400);
+    };
 
     /* 
     When All Checks Get Password then save the Current Password Given By User to the Database,

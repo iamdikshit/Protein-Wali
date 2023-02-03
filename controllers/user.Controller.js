@@ -47,7 +47,7 @@ export const updateUser = asyncHandler(async (req, res) =>{
         else {
 
             // Checks Whether phone [Phone Number] is Valid or Not on the Bases Of Pattern or Whether phone [Phone Number] is null
-            if(!PhoneNumberValidation(phone)){
+            if(!PhoneNumberValidation(phone.primary) || !PhoneNumberValidation(phone.alternate)){
                 throw new AppError("Invalid Phone Number",400);
             };
 
@@ -81,13 +81,11 @@ export const updateUser = asyncHandler(async (req, res) =>{
         };
 
         // Sending Response if Collection Name gets Updated Sucessfully in the Database
-        res.status.json({
+        return res.status(200).json({
             success : true,
             message : `User Updated Successfully with ID : ${userId}`,
         });
 
-        // Unsetting updatedCollection to Free Up Space from the Memory
-        updatedUser.remove();
 });
 
 
@@ -121,13 +119,10 @@ export const deleteUser = asyncHandler(async (req, res) => {
     };
 
     // Sending Response if User gets Deleted Sucessfully from the Database
-    res.status.json({
+    return res.status(200).json({
         success : true,
         message : `User Deleted Successfully with ID : ${userId}`, 
     });
-
-    // Unsetting deletedCollection to Free Up Space from the Memory
-    deletedUser.remove();
 
 });
 
@@ -158,7 +153,7 @@ export const getProfile = asyncHandler(async (req, res)=>{
     };
 
      // Sending Response if User is Found
-    res.status(200).json({
+    return res.status(200).json({
         success : true,
         user,
     });
@@ -168,7 +163,7 @@ export const getProfile = asyncHandler(async (req, res)=>{
 /******************************************************
  * @GET_USER_BY_ID
  * @REQUEST_TYPE GET
- * @Route       /:id
+ * @Route       /fetch/:id
  * @Description 1.Controller used for Getting Single User Detail
  *              2. Moderator and Admin can get Single User detail
  * @Middleware roles.Middleware
@@ -189,14 +184,11 @@ export const getUserById = asyncHandler (async (req, res) => {
     };
 
     // When Successful Send Response
-    res.status(201).json({
+    return res.status(201).json({
         success : true,
         message : `User Found with ID : ${userId}`,
         user,
     });
-
-    // Unsetting product, to Free Up Space from the Memory
-    user.remove();
 
 });
 
@@ -208,7 +200,7 @@ export const getUserById = asyncHandler (async (req, res) => {
 /******************************************************
  * @GET_ALL_USER
  * @REQUEST_TYPE GET
- * @Route       /all
+ * @Route       /fetch/all
  * @Description 1.Controller used for Getting all Users Details
  *              2. Moderator and Admin can get all the Users
  * @Middleware roles.Middleware
@@ -227,14 +219,11 @@ export const getAllUsers = asyncHandler (async (_req, res) => {
     };
 
     // When Successful Send Response
-    res.status(201).json({
+    return res.status(201).json({
         success : true,
         message : "Fetched All Users Details Successfully.",
         users,
     });
-
-    // Unsetting products, to Free Up Space from the Memory
-    users.remove();
 
 });
 
