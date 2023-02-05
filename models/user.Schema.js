@@ -73,6 +73,15 @@ const userSchema = mongoose.Schema(
             
         },
 
+        photo : {
+            id : {
+                type : String,
+            },
+            secureUrl : {
+                type : String,
+            },
+        },
+
         isActive : {
             type : Boolean,
             default : true,
