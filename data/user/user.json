@@ -1,0 +1,19 @@
+[
+  {
+    "_id": "5c8a1d5b0190b214360dc057",
+    "name": "Dikshit Bhardwaj",
+    "email": "admin@protein.io",
+    "role": "admin",
+    "isActive": true,
+    "password": "$2a$12$Q0grHjH9PXc6SxivC8m12.2mZJ9BbKcgFpwSG4Y1ZEII8HJVzWeyS"
+  },
+
+  {
+    "_id": "5c8a1e1a2f8fb814b56fa182",
+    "name": "Anirban Middya",
+    "email": "anirban@example.com",
+    "role": "user",
+    "isActive": true,
+    "password": "$2a$12$9nFqToiTmjgfFVJiQvjmreLt4k8X4gGYCETGapSZOb2hHa55t0dDq"
+  }
+]
