@@ -25,25 +25,33 @@ export const signUp = asyncHandler(async (req, res, next) => {
 
   // Validate the Data if exists
   if (!name || !email || !password || !confirmPassword) {
+
     next(new AppError("Please Fill All Fields", 400));
-  }
+
+  };
 
   // If Password Does Not Match Confirm Password then Throw a Error
   if (password !== confirmPassword) {
+
     next(new AppError("Password & Confirm Password Does Not Match.", 400));
-  }
+
+  };
 
   // Check If User Exists
   const existingUser = await User.findOne({ email });
 
   if (existingUser) {
+
     next(new AppError("User Already Exists.", 400));
-  }
+
+  };
 
   // Checks Whether email is Valid or Not on the Bases Of Pattern or Whether Email is null
   if (!EmailValidation(email)) {
+
     next(new AppError("Invalid Email", 400));
-  }
+
+  };
 
   // Creating New User Entry in the Database
   const user = await User.create({
@@ -66,6 +74,7 @@ export const signUp = asyncHandler(async (req, res, next) => {
     message: "User Signned Up Successfully",
     token,
   });
+
 });
 
 /******************************************************
@@ -78,14 +87,16 @@ export const signUp = asyncHandler(async (req, res, next) => {
  * @Returns Success Message => OTP Sent
  ******************************************************/
 
-export const signIn = asyncHandler(async (req, res) => {
+export const signIn = asyncHandler(async (req, res, next) => {
   //Collect Sign In Credentials
   const { email, password } = req.body;
 
   // Validatation Check if email and password or either of them missing
   if (!email || !password) {
-    throw new AppError("Credentials cannot be Empty!", 400);
-  }
+
+    next(new AppError("Credentials cannot be Empty!", 400));
+
+  };
 
   // Check user is in the Database or not while Selecting Password
   const user = await User.findOne({ email }).select(
@@ -94,8 +105,10 @@ export const signIn = asyncHandler(async (req, res) => {
 
   // Check Wether User Exists or Not
   if (!user) {
+
     next(new AppError("Invalid Credentials!", 400));
-  }
+
+  };
 
   // Compare Password Using Predefined Method in Schema "comparePassword"
   const ispasswordMatched = await user.comparePassword(password);
@@ -138,6 +151,7 @@ export const signIn = asyncHandler(async (req, res) => {
         success: true,
         message: `OTP Sent to ${user.email}`,
       });
+
     } catch (error) {
       // Rollback, Clear Fields & Save
       user.otp = undefined;
@@ -149,11 +163,13 @@ export const signIn = asyncHandler(async (req, res) => {
       //SET COOKIE & BEARER TOKEN VALUE AS "null"
       res.cookie("token", null, CookieOptions);
 
-      throw new AppError(error.message || "OTP Sent Failure", 500);
-    }
-  }
+      next(new AppError(error.message || "OTP Sent Failure", 500));
+    };
+
+  };
 
   throw new AppError("Invalid Credentials!", 400);
+
 });
 
 /******************************************************
@@ -166,12 +182,13 @@ export const signIn = asyncHandler(async (req, res) => {
  * @Returns Success Message
  ******************************************************/
 
-export const twoFactorOtp = asyncHandler(async (req, res) => {
+export const twoFactorOtp = asyncHandler(async (req, res, next) => {
+
   // Check for Authentication
   const { email } = req.user;
 
   if (!email) {
-    throw new AppError("Unauthorised", 401);
+    next(new AppError("Unauthorised", 401));
   }
 
   // Collect OTP from Frontend
@@ -179,17 +196,22 @@ export const twoFactorOtp = asyncHandler(async (req, res) => {
 
   // If OTP is null Throw Error
   if (!otp) {
-    throw new AppError("OTP Cannot be Empty!", 400);
-  }
+
+    next(new AppError("OTP Cannot be Empty!", 400));
+
+  };
 
   // Check user is in the Database
   const user = await User.findOne({ email });
 
   if (!user) {
-    throw new AppError("User Not Found.", 404);
-  }
+
+    next(new AppError("User Not Found.", 404));
+
+  };
 
   if (user.otp === otp) {
+
     // Rollback, Clear Fields & Save
     user.otp = undefined;
     user.otpExpiry = undefined;
@@ -206,9 +228,11 @@ export const twoFactorOtp = asyncHandler(async (req, res) => {
       message: "User Signned In Successfully",
       token,
     });
-  }
 
-  throw new AppError("Invalid OTP!", 400);
+  };
+
+  next(new AppError("Invalid OTP!", 400));
+
 });
 
 /******************************************************
@@ -221,20 +245,25 @@ export const twoFactorOtp = asyncHandler(async (req, res) => {
  * @Returns Success Message => OTP Resend
  ******************************************************/
 
-export const resendOtp = asyncHandler(async (req, res) => {
+export const resendOtp = asyncHandler(async (req, res, next) => {
+
   // Check for Authentication
   const { email } = req.user;
 
   if (!email) {
-    throw new AppError("Unauthorised", 401);
-  }
+
+    next(new AppError("Unauthorised", 401));
+
+  };
 
   // Check user is in the Database
   const user = await User.findOne({ email });
 
   if (!user) {
-    throw new AppError("User Not Found.", 404);
-  }
+
+    next(new AppError("User Not Found.", 404));
+
+  };
 
   // OTP Generation using Predefined Method in User Schema "generateOtp"
   const otp = user.generateOtp();
@@ -270,6 +299,7 @@ export const resendOtp = asyncHandler(async (req, res) => {
       success: true,
       message: `OTP Resend to ${user.email}`,
     });
+
   } catch (error) {
     // Rollback, Clear Fields & Save
     user.otp = undefined;
@@ -281,8 +311,10 @@ export const resendOtp = asyncHandler(async (req, res) => {
     //SET COOKIE & BEARER TOKEN VALUE AS "null"
     res.cookie("token", null, CookieOptions);
 
-    throw new AppError(error.message || "OTP Resend Failure", 500);
-  }
+    next(new AppError(error.message || "OTP Resend Failure", 500));
+
+  };
+
 });
 
 /******************************************************
@@ -296,6 +328,7 @@ export const resendOtp = asyncHandler(async (req, res) => {
  ******************************************************/
 
 export const signOut = asyncHandler(async (_req, res) => {
+
   //Cookie Helper Method for Creating Cookies and sending to Response
   //SET COOKIE & BEARER TOKEN TO NULL
 
@@ -307,6 +340,7 @@ export const signOut = asyncHandler(async (_req, res) => {
     success: true,
     message: "Sign Out",
   });
+
 });
 
 /******************************************************
@@ -319,22 +353,27 @@ export const signOut = asyncHandler(async (_req, res) => {
  * @Returns Success Message => Email Sent
  ******************************************************/
 
-export const forgotPassword = asyncHandler(async (req, res) => {
+export const forgotPassword = asyncHandler(async (req, res, next) => {
+
   // Grab Email from Frontend
   const { email } = req.body;
 
   // Checks Whether email is Valid or Not on the Bases Of Pattern or Whether Email is null
   if (!EmailValidation(email)) {
-    throw new AppError("Invalid Credentials", 400);
-  }
+
+    next(new AppError("Invalid Credentials", 400));
+
+  };
 
   // Query Database for User by Email Matching Criteria
   const user = await User.findOne({ email });
 
   // Check Wether User Exists or Not
   if (!user) {
-    throw new AppError("User Not Found.", 404);
-  }
+
+    next(new AppError("User Not Found.", 404));
+
+  };
 
   // Token Generation for Forgot Password using Predefined Method in User Schema "generateForgotPasswordToken"
   const resetToken = user.generateForgotPasswordToken();
@@ -367,6 +406,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
       success: true,
       message: `Email Sent to ${user.email}`,
     });
+
   } catch (error) {
     // Rollback, Clear Fields & Save
     user.forgotPasswordToken = undefined;
@@ -375,8 +415,10 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     // Forcefull Save
     await user.save({ validateBeforeSave: false });
 
-    throw new AppError(error.message || "Email Sent Failure", 500);
-  }
+    next(new AppError(error.message || "Email Sent Failure", 500));
+
+  };
+
 });
 
 /******************************************************
@@ -389,10 +431,10 @@ export const forgotPassword = asyncHandler(async (req, res) => {
  * @Returns Success Message
  ******************************************************/
 
-export const resetPassword = asyncHandler(async (req, res) => {
+export const resetPassword = asyncHandler(async (req, res, next) => {
+
   // Grab Password Reset Token From Url
   const { token: resetToken } = req.params;
-  console.log(resetToken);
 
   //Grab Password and Confirm password from Frontend
   const { password, confirmPassword } = req.body;
@@ -412,13 +454,17 @@ export const resetPassword = asyncHandler(async (req, res) => {
 
   // If User Not Found Throw Error
   if (!user) {
-    throw new AppError("Password Token is Invalid Or Expired.", 400);
-  }
+
+    next(new AppError("Password Token is Invalid Or Expired.", 400));
+
+  };
 
   // If Password Does Not Match Confirm Password then Throw a Error
   if (password !== confirmPassword) {
-    throw new AppError("Password & Confirm Password Does Not Match.", 400);
-  }
+
+    next(new AppError("Password & Confirm Password Does Not Match.", 400));
+
+  };
 
   // When All Checks Get Password then save the Current Password Given By User to the Database,
   // Which will Automatically get Encrypted Before Saving into Database.
@@ -444,6 +490,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
     message: "Password Reset Successfully",
     token,
   });
+
 });
 
 /******************************************************
@@ -456,7 +503,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
  * @Returns Success Message
  ******************************************************/
 
-export const changePassword = asyncHandler(async (req, res) => {
+export const changePassword = asyncHandler(async (req, res, next) => {
   // Grab Email from req.user
   const { email } = req.user;
 
@@ -465,34 +512,44 @@ export const changePassword = asyncHandler(async (req, res) => {
 
   // If User Not Found Throw Error
   if (!user) {
-    throw new AppError("User Not Found.", 404);
-  }
+
+    next(new AppError("User Not Found.", 404));
+
+  };
 
   // Grab Password and Forgot Password from the Frontend
   const { oldPassword, newPassword, confirmPassword } = req.body;
 
   // Check Whether Credentials is Empty if true then Throw Error
   if (!oldPassword || !newPassword || !confirmPassword) {
-    throw new AppError("Credentials cannot be Empty!", 400);
-  }
+
+    next(new AppError("Credentials cannot be Empty!", 400));
+
+  };
 
   // Compare Password Using Predefined Method in Schema "comparePassword"
   const isOldPasswordMatched = await user.comparePassword(oldPassword);
 
   // If Old Password Does not Match in the Database then Throw Error
   if (!isOldPasswordMatched) {
-    throw new AppError("Invalid Credentials!", 400);
-  }
+
+    next(new AppError("Invalid Credentials!",400));
+
+  };
 
   // If Password Does Not Match Confirm Password then Throw a Error
   if (newPassword !== confirmPassword) {
-    throw new AppError("Password & Confirm Password Does Not Match.", 400);
-  }
+
+    next(new AppError("Password & Confirm Password Does Not Match.", 400));
+
+  };
 
   // If Old Password Matched New Password then Throw a Error
   if (oldPassword === newPassword) {
-    throw new AppError("Old Password & New Password Cannot be Same.", 400);
-  }
+
+    next(new AppError("Old Password & New Password Cannot be Same.", 400));
+
+  };
 
   /* 
     When All Checks Get Password then save the Current Password Given By User to the Database,
@@ -516,4 +573,5 @@ export const changePassword = asyncHandler(async (req, res) => {
     message: "Password Changed",
     token,
   });
+
 });

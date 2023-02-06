@@ -15,7 +15,7 @@ import PhoneNumberValidation from "../utils/phoneNumberValidation.js"
  * @Returns User Object
  ******************************************************/
 
-export const updateUser = asyncHandler(async (req, res) =>{
+export const updateUser = asyncHandler(async (req, res, next) =>{
 
         //Grab ID from URL
         const { id : userId } = req.params;
@@ -25,17 +25,23 @@ export const updateUser = asyncHandler(async (req, res) =>{
         
         // Validate whether Name is Empty or Not.
         if(!name){
-            throw new AppError("User's Name is Required",400);
+
+            next(new AppError("User's Name is Required",400));
+
         };
 
         // Validate whether Email is Empty or Not.
         if(!email){
-            throw new AppError("User's Email is Required",400);
+
+            next(new AppError("User's Email is Required",400));
+
         };
 
         // Checks Whether email is Valid or Not on the Bases Of Pattern or Whether Email is null
         if(!EmailValidation(email)){
-            throw new AppError("Invalid Email",400);
+
+            next(new AppError("Invalid Email",400));
+
         };
 
         // Validate whether Phone Number is Empty or Not , If Empty then Set to Undefined.
@@ -48,14 +54,18 @@ export const updateUser = asyncHandler(async (req, res) =>{
 
             // Checks Whether phone [Phone Number] is Valid or Not on the Bases Of Pattern or Whether phone [Phone Number] is null
             if(!PhoneNumberValidation(phone.primary) || !PhoneNumberValidation(phone.alternate)){
-                throw new AppError("Invalid Phone Number",400);
+
+                next(new AppError("Invalid Phone Number",400));
+
             };
 
         };
 
         // Validate whether Address is Empty or Not , If Empty then Set to Undefined.
         if(!address){
-            address = undefined;;
+
+            address = undefined;
+
         };
 
         // Updating an Existing Collection in the Database
@@ -77,7 +87,9 @@ export const updateUser = asyncHandler(async (req, res) =>{
 
         // In Case Updating an Existing Collection Fails then Throw Error
         if(!updatedUser){
-            throw new AppError("User Not Found, User Cannot be Updated. ",404);
+
+            next(new AppError("User Not Found, User Cannot be Updated. ",404));
+
         };
 
         // Sending Response if Collection Name gets Updated Sucessfully in the Database
@@ -105,7 +117,7 @@ export const updateUser = asyncHandler(async (req, res) =>{
  * @Returns User Object
  ******************************************************/
 
-export const deleteUser = asyncHandler(async (req, res) => {
+export const deleteUser = asyncHandler(async (req, res, next) => {
 
     // Grab ID From URL
     const {id : userId} = req.params;
@@ -115,7 +127,9 @@ export const deleteUser = asyncHandler(async (req, res) => {
 
     // In Case Deleting an Existing Collection Fails then Throw Error
     if(!deletedUser){
-        throw new AppError("User Not Found, User Cannot be Deleted.",404);
+
+        next(new AppError("User Not Found, User Cannot be Deleted.",404));
+
     };
 
     // Sending Response if User gets Deleted Sucessfully from the Database
@@ -142,14 +156,16 @@ export const deleteUser = asyncHandler(async (req, res) => {
  * @Returns User Object
  ******************************************************/
 
-export const getProfile = asyncHandler(async (req, res)=>{
+export const getProfile = asyncHandler(async (req, res, next)=>{
     
     // Grab User from request
     const {user} = req;
 
     // If User Not Found Throw Error
     if(!user){
-        throw new AppError("User Not Found.",404);
+
+        next(new AppError("User Not Found.",404));
+
     };
 
      // Sending Response if User is Found
@@ -157,6 +173,7 @@ export const getProfile = asyncHandler(async (req, res)=>{
         success : true,
         user,
     });
+
 });
 
 
@@ -171,7 +188,7 @@ export const getProfile = asyncHandler(async (req, res)=>{
  * @Returns User Object
  ******************************************************/
 
-export const getUserById = asyncHandler (async (req, res) => {
+export const getUserById = asyncHandler (async (req, res, next) => {
 
     // Get id from URL as userId
     const {id : userId} = req.params;
@@ -180,7 +197,9 @@ export const getUserById = asyncHandler (async (req, res) => {
 
     // CHECK : When User Not Found throw Error
     if(!user) {
-         throw new AppError("No User was Found.",404);
+
+         next(new AppError("No User was Found.",404));
+
     };
 
     // When Successful Send Response
@@ -208,14 +227,16 @@ export const getUserById = asyncHandler (async (req, res) => {
  * @Returns User Object
  ******************************************************/
 
-export const getAllUsers = asyncHandler (async (_req, res) => {
+export const getAllUsers = asyncHandler (async (_req, res, next) => {
 
     // Find All Products From The Database
     const users = await User.find({});
     
     // CHECK : When User Not Found throw Error
     if(!users) {
-         throw new AppError("No User was Found",404);
+
+         next(new AppError("No User was Found",404));
+
     };
 
     // When Successful Send Response
