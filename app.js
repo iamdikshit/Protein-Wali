@@ -1,18 +1,18 @@
 import express from "express";
 import morgan from "morgan";
-import config from "./config/env.config.js"
+import config from "./config/env.config.js";
 import UserRoute from "./routes/user.Route.js";
 import AppError from "./services/appError.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import globalErroHandller from "./controllers/error.Controller.js";
-
+import categoryRoute from "./routes/category.Route.js";
 
 const app = express();
 
 // Middleware's
 app.use(express.json());
-app.use(express.urlencoded({extended : true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(cookieParser());
 
@@ -39,18 +39,18 @@ if (config.NODE_ENV.trim() == "development") {
  * @Route_4   /api/v1/user/:id
  * @Route_5   /api/v1/user/all
  ******************************************************/
-app.use("/api/v1/user",UserRoute);
+app.use("/api/v1/user", UserRoute);
 
-
+/*******************************
+ * @CATEGORY_ROUTES
+ *******************************/
+app.use("/api/v1/category", categoryRoute);
 
 // ERROR HANDLER FOR NOT SERVER URL
 
 app.all("*", (req, _res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
-
-
-
 
 /**************************************************
 * @UniversalGlobalHandler

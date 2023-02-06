@@ -1,16 +1,13 @@
-import User from "../models/user.Schema.js"
+import User from "../models/user.Schema.js";
 import asyncHandler from "../services/asyncHandler.js";
 import AppError from "../services/appError.js";
-import EmailValidation from "../utils/emailValidation.js"
+import EmailValidation from "../utils/emailValidation.js";
 import CookieOptions from "../utils/cookieOptions.js";
 import MailHelper from "../utils/mailHelper.js";
 import config from "../config/env.config.js";
 import crypto from "crypto";
 
-
 //------------------------ API ROUTES ------------------------
-
-
 
 /******************************************************
  * @SIGNUP
@@ -22,64 +19,55 @@ import crypto from "crypto";
  * @Returns User Object
  ******************************************************/
 
-export const signUp = asyncHandler ( async (req, res) => {
+export const signUp = asyncHandler(async (req, res, next) => {
+  // Collect all Information
+  const { name, email, password, confirmPassword } = req.body;
 
-    // Collect all Information
-    const { name, email, password, confirmPassword } = req.body;
+  // Validate the Data if exists
+  if (!name || !email || !password || !confirmPassword) {
+    next(new AppError("Please Fill All Fields", 400));
+  }
 
-    // Validate the Data if exists
-    if(!name || !email || !password ||!confirmPassword){
-      throw new AppError("Please Fill All Fields",400);
-    };
+  // If Password Does Not Match Confirm Password then Throw a Error
+  if (password !== confirmPassword) {
+    next(new AppError("Password & Confirm Password Does Not Match.", 400));
+  }
 
-    // If Password Does Not Match Confirm Password then Throw a Error 
-    if (password !== confirmPassword) {
-      throw new AppError("Password & Confirm Password Does Not Match.",400);
-    };
+  // Check If User Exists
+  const existingUser = await User.findOne({ email });
 
-    // Check If User Exists
-    const existingUser = await User.findOne({email});
+  if (existingUser) {
+    next(new AppError("User Already Exists.", 400));
+  }
 
-    if(existingUser){
-      throw new AppError("User Already Exists.",400);
-    };
+  // Checks Whether email is Valid or Not on the Bases Of Pattern or Whether Email is null
+  if (!EmailValidation(email)) {
+    next(new AppError("Invalid Email", 400));
+  }
 
-    // Checks Whether email is Valid or Not on the Bases Of Pattern or Whether Email is null
-    if(!EmailValidation(email)){
-      throw new AppError("Invalid Email",400);
-    };
+  // Creating New User Entry in the Database
+  const user = await User.create({
+    name,
+    email,
+    password,
+  });
 
-    // Creating New User Entry in the Database
-    const user = await User.create({
-      name,
-      email,
-      password,
-    });
+  const token = user.getJwtToken();
+  console.log(token);
 
-    const token = user.getJwtToken();
-    console.log(token);
+  // Setting Password undefined so that it couldn't be passed through token
+  user.password = undefined;
 
-    // Setting Password undefined so that it couldn't be passed through token
-    user.password = undefined;
+  //SET COOKIE & BEARER TOKEN VALUE AS "token"
+  res.cookie("token", token, CookieOptions);
 
-
-    //SET COOKIE & BEARER TOKEN VALUE AS "token"
-    res.cookie("token", token, CookieOptions);
-
-
-    // Sending Response if User Entry gets Sucessfully Created in the Database
-    return res.status(200).json({
-      success : true,
-      message : "User Signned Up Successfully",
-      token,
-    });
-
-
+  // Sending Response if User Entry gets Sucessfully Created in the Database
+  return res.status(200).json({
+    success: true,
+    message: "User Signned Up Successfully",
+    token,
+  });
 });
-
-
-
-
 
 /******************************************************
  * @SIGNIN
@@ -91,54 +79,46 @@ export const signUp = asyncHandler ( async (req, res) => {
  * @Returns User Object
  ******************************************************/
 
-export const signIn = asyncHandler (async (req,res) => {
+export const signIn = asyncHandler(async (req, res, next) => {
+  //Collect Sign In Credentials
+  const { email, password } = req.body;
 
-    //Collect Sign In Credentials
-    const { email,password } = req.body;
+  // Validatation Check if email and password or either of them missing
+  if (!email || !password) {
+    throw new AppError("Credentials cannot be Empty!", 400);
+  }
 
-    // Validatation Check if email and password or either of them missing
-    if(!email || !password){
-      throw new AppError("Credentials cannot be Empty!",400);
-    };
+  // Check user is in the Database or not while Selecting Password
+  const user = await User.findOne({ email }).select("+password");
 
-    // Check user is in the Database or not while Selecting Password
-    const user = await User.findOne({email}).select("+password");
+  // Check Wether User Exists or Not
+  if (!user) {
+    next(new AppError("Invalid Credentials!", 400));
+  }
 
-     // Check Wether User Exists or Not
-    if(!user){
-      throw new AppError("Invalid Credentials!",400);
-    };
+  // Compare Password Using Predefined Method in Schema "comparePassword"
+  const ispasswordMatched = await user.comparePassword(password);
 
-    // Compare Password Using Predefined Method in Schema "comparePassword"
-    const ispasswordMatched = await user.comparePassword(password);
+  if (ispasswordMatched) {
+    // Token Generation using Predefined Method in User Schema
+    const token = user.getJwtToken();
+    console.log(token);
+    // Setting Password undefined so that it couldn't be passed through token
+    user.password = undefined;
 
-    if(ispasswordMatched){
-      // Token Generation using Predefined Method in User Schema
-      const token = user.getJwtToken();
-      console.log(token);
-      // Setting Password undefined so that it couldn't be passed through token
-      user.password = undefined;
+    //SET COOKIE & BEARER TOKEN VALUE AS "token"
+    res.cookie("token", token, CookieOptions);
 
-      //SET COOKIE & BEARER TOKEN VALUE AS "token"
-      res.cookie("token", token, CookieOptions);
+    // Sending Response if User gets SignIn Successfully
+    return res.status(200).json({
+      success: true,
+      message: "User Signned In Successfully",
+      token,
+    });
+  }
 
-
-      // Sending Response if User gets SignIn Successfully
-      return res.status(200).json({
-        success : true,
-        message : "User Signned In Successfully",
-        token,
-      });
-
-    };
-
-    throw new AppError("Invalid Credentials!",400);
-
+  next(new AppError("Invalid Credentials!", 400));
 });
-
-
-
-
 
 /******************************************************
  * @SIGNOUT
@@ -150,25 +130,19 @@ export const signIn = asyncHandler (async (req,res) => {
  * @Returns Success Message
  ******************************************************/
 
-export const signOut = asyncHandler(async (_req,res) => {
-    
-    //Cookie Helper Method for Creating Cookies and sending to Response 
-    //SET COOKIE & BEARER TOKEN TO NULL
+export const signOut = asyncHandler(async (_req, res) => {
+  //Cookie Helper Method for Creating Cookies and sending to Response
+  //SET COOKIE & BEARER TOKEN TO NULL
 
-    //SET COOKIE & BEARER TOKEN VALUE AS "token"
-    res.cookie("token", null, CookieOptions);
+  //SET COOKIE & BEARER TOKEN VALUE AS "token"
+  res.cookie("token", null, CookieOptions);
 
-    // Sending Response if User SignOuts Successfully
-    return res.status(200).json({
-      success : true,
-      message : "Sign Out"
-    });
-
+  // Sending Response if User SignOuts Successfully
+  return res.status(200).json({
+    success: true,
+    message: "Sign Out",
+  });
 });
-
-
-
-
 
 /******************************************************
  * @FORGOT_PASSWORD
@@ -181,73 +155,64 @@ export const signOut = asyncHandler(async (_req,res) => {
  ******************************************************/
 
 export const forgotPassword = asyncHandler(async (req, res) => {
-    
-    // Grab Email from Frontend
-    const { email } = req.body;
+  // Grab Email from Frontend
+  const { email } = req.body;
 
-    // Checks Whether email is Valid or Not on the Bases Of Pattern or Whether Email is null
-    if(!EmailValidation(email)){
-      throw new AppError("Invalid Credentials",400);
-    };
+  // Checks Whether email is Valid or Not on the Bases Of Pattern or Whether Email is null
+  if (!EmailValidation(email)) {
+    throw new AppError("Invalid Credentials", 400);
+  }
 
-    // Query Database for User by Email Matching Criteria
-    const user = await User.findOne({ email });
-    
-    // Check Wether User Exists or Not
-    if(!user){
-      throw new AppError("User Not Found.",404);
-    };
+  // Query Database for User by Email Matching Criteria
+  const user = await User.findOne({ email });
 
-    // Token Generation for Forgot Password using Predefined Method in User Schema "generateForgotPasswordToken"
-    const resetToken = user.generateForgotPasswordToken();
+  // Check Wether User Exists or Not
+  if (!user) {
+    throw new AppError("User Not Found.", 404);
+  }
 
-    // Only Saving Data Without Running Validation in the Database - Forcefull Save
-    await user.save({validateBeforeSave : false});
+  // Token Generation for Forgot Password using Predefined Method in User Schema "generateForgotPasswordToken"
+  const resetToken = user.generateForgotPasswordToken();
 
-    //------------------------- Email Section -------------------------
+  // Only Saving Data Without Running Validation in the Database - Forcefull Save
+  await user.save({ validateBeforeSave: false });
 
-    // Custom Crafted Reset URL 
-    const resetUrl = `${req.protocol}://${req.hostname}:${config.PORT}/api/v1/user/password/reset/${resetToken}`;
+  //------------------------- Email Section -------------------------
 
-    //Custom Text Message
-    const text = `Your Password Reset Url is \n\n${resetUrl}\n\n`;
+  // Custom Crafted Reset URL
+  const resetUrl = `${req.protocol}://${req.hostname}:${config.PORT}/api/v1/user/password/reset/${resetToken}`;
 
-    //Custom HTML For Heading Highlighting 
-    const html = `<h3><b>Password Reset For Account</b><br>
+  //Custom Text Message
+  const text = `Your Password Reset Url is \n\n${resetUrl}\n\n`;
+
+  //Custom HTML For Heading Highlighting
+  const html = `<h3><b>Password Reset For Account</b><br>
     <a href="${resetUrl}">Click Here to Reset Password</a></h3>`;
 
-    try {
-        await MailHelper({
-          email : user.email,
-          subject : config.SMTP_MAIL_RESET_PASSWORD_SUBJECT,
-          text : text,
-          html : html,
-        });
+  try {
+    await MailHelper({
+      email: user.email,
+      subject: config.SMTP_MAIL_RESET_PASSWORD_SUBJECT,
+      text: text,
+      html: html,
+    });
 
-        //If Mail Sent Successfully Send Response
-        return res.status(200).json({
-          success : true,
-          message : `Email Sent to ${user.email}`,
-          
-      });
+    //If Mail Sent Successfully Send Response
+    return res.status(200).json({
+      success: true,
+      message: `Email Sent to ${user.email}`,
+    });
+  } catch (error) {
+    // Rollback, Clear Fields & Save
+    user.forgotPasswordToken = undefined;
+    user.forgotPasswordExpiry = undefined;
 
-    } catch (error) {
+    // Forcefull Save
+    await user.save({ validateBeforeSave: false });
 
-        // Rollback, Clear Fields & Save 
-        user.forgotPasswordToken = undefined;
-        user.forgotPasswordExpiry = undefined;
-
-        // Forcefull Save
-        await user.save({validateBeforeSave : false});
-
-        throw new AppError(error.message||"Email Sent Failure",500);
-    };
-
+    throw new AppError(error.message || "Email Sent Failure", 500);
+  }
 });
-
-
-
-
 
 /******************************************************
  * @RESET_PASSWORD
@@ -259,65 +224,62 @@ export const forgotPassword = asyncHandler(async (req, res) => {
  * @Returns User Object
  ******************************************************/
 
-export const resetPassword = asyncHandler(async (req,res) => {
+export const resetPassword = asyncHandler(async (req, res) => {
+  // Grab Password Reset Token From Url
+  const { token: resetToken } = req.params;
+  console.log(resetToken);
 
-    // Grab Password Reset Token From Url
-    const { token: resetToken } = req.params;
-    console.log(resetToken);
+  //Grab Password and Confirm password from Frontend
+  const { password, confirmPassword } = req.body;
 
-    //Grab Password and Confirm password from Frontend
-    const { password, confirmPassword } = req.body;
+  //Encrypt Password
+  const resetPasswordToken = crypto
+    .createHash("sha3-256")
+    .update(resetToken)
+    .digest("hex");
+  console.log(resetPasswordToken);
 
-    //Encrypt Password
-    const resetPasswordToken = crypto.createHash("sha3-256").update(resetToken).digest("hex");
-    console.log(resetPasswordToken);
+  //Find User on the Basis of Reset Password Token with a check that that Token Expiry Time is Greater than Current Time
+  const user = await User.findOne({
+    forgotPasswordToken: resetPasswordToken,
+    forgotPasswordExpiry: { $gt: Date.now() },
+  });
 
-    //Find User on the Basis of Reset Password Token with a check that that Token Expiry Time is Greater than Current Time
-    const user = await User.findOne({
-      forgotPasswordToken : resetPasswordToken,
-      forgotPasswordExpiry : {$gt : Date.now()},
-    });
+  // If User Not Found Throw Error
+  if (!user) {
+    throw new AppError("Password Token is Invalid Or Expired.", 400);
+  }
 
-    // If User Not Found Throw Error
-    if(!user) {
-      throw new AppError("Password Token is Invalid Or Expired.",400);
-    };
+  // If Password Does Not Match Confirm Password then Throw a Error
+  if (password !== confirmPassword) {
+    throw new AppError("Password & Confirm Password Does Not Match.", 400);
+  }
 
-    // If Password Does Not Match Confirm Password then Throw a Error 
-    if (password !== confirmPassword) {
-      throw new AppError("Password & Confirm Password Does Not Match.",400);
-    };
+  // When All Checks Get Password then save the Current Password Given By User to the Database,
+  // Which will Automatically get Encrypted Before Saving into Database.
+  user.password = password;
 
-    // When All Checks Get Password then save the Current Password Given By User to the Database,
-    // Which will Automatically get Encrypted Before Saving into Database. 
-    user.password = password;
+  // Set Garbage Data to Undefined(Data Of No Use After New Password Got Set).
+  user.forgotPasswordToken = undefined;
+  user.forgotPasswordExpiry = undefined;
 
-    // Set Garbage Data to Undefined(Data Of No Use After New Password Got Set).
-    user.forgotPasswordToken = undefined;
-    user.forgotPasswordExpiry = undefined;
+  // Save Data to Database for Current User
+  await user.save();
 
-    // Save Data to Database for Current User
-    await user.save();
+  // Generate Token & Send as Response
+  const token = user.getJwtToken();
+  user.password = undefined;
 
-    // Generate Token & Send as Response
-    const token = user.getJwtToken();
-    user.password = undefined;
+  //SET COOKIE & BEARER TOKEN VALUE AS "token"
+  res.cookie("token", token, CookieOptions);
 
-    //SET COOKIE & BEARER TOKEN VALUE AS "token"
-    res.cookie("token", token, CookieOptions);
-
-    // Sending Response if User Reset Password Successfully
-    return res.status(200).json({
-        success : true,
-        message : "Password Reset Successfully",
-        token,
-    });
-
+  // Sending Response if User Reset Password Successfully
+  return res.status(200).json({
+    success: true,
+    message: "Password Reset Successfully",
+    token,
+  });
 });
-
-
-
-
 
 /******************************************************
  * @CHANGE_PASSWORD
@@ -330,68 +292,63 @@ export const resetPassword = asyncHandler(async (req,res) => {
  ******************************************************/
 
 export const changePassword = asyncHandler(async (req, res) => {
+  // Grab Email from req.user
+  const { email } = req.user;
 
-    // Grab Email from req.user
-    const { email } = req.user;
+  // Check user is in the Database or not while Selecting Password
+  const user = await User.findOne({ email }).select("+password");
 
-    // Check user is in the Database or not while Selecting Password
-    const user = await User.findOne({email}).select("+password");
+  // If User Not Found Throw Error
+  if (!user) {
+    throw new AppError("User Not Found.", 404);
+  }
 
-    // If User Not Found Throw Error
-    if(!user){
-      throw new AppError("User Not Found.",404);
-    };
+  // Grab Password and Forgot Password from the Frontend
+  const { oldPassword, newPassword, confirmPassword } = req.body;
 
-    // Grab Password and Forgot Password from the Frontend
-    const { oldPassword, newPassword, confirmPassword } = req.body;
+  // Check Whether Credentials is Empty if true then Throw Error
+  if (!oldPassword || !newPassword || !confirmPassword) {
+    throw new AppError("Credentials cannot be Empty!", 400);
+  }
 
-    // Check Whether Credentials is Empty if true then Throw Error
-    if (!oldPassword || !newPassword || !confirmPassword)
-    {
-        throw new AppError("Credentials cannot be Empty!",400);
-    };
+  // Compare Password Using Predefined Method in Schema "comparePassword"
+  const isOldPasswordMatched = await user.comparePassword(oldPassword);
 
-    // Compare Password Using Predefined Method in Schema "comparePassword"
-    const isOldPasswordMatched = await user.comparePassword(oldPassword);
+  // If Old Password Does not Match in the Database then Throw Error
+  if (!isOldPasswordMatched) {
+    throw new AppError("Invalid Credentials!", 400);
+  }
 
-    // If Old Password Does not Match in the Database then Throw Error
-    if (!isOldPasswordMatched){
-        throw new AppError("Invalid Credentials!",400);
-    };
+  // If Password Does Not Match Confirm Password then Throw a Error
+  if (newPassword !== confirmPassword) {
+    throw new AppError("Password & Confirm Password Does Not Match.", 400);
+  }
 
-    
-    // If Password Does Not Match Confirm Password then Throw a Error 
-    if (newPassword !== confirmPassword) {
-      throw new AppError("Password & Confirm Password Does Not Match.",400);
-    };
-    
-    // If Old Password Matched New Password then Throw a Error 
-    if (oldPassword === newPassword) {
-      throw new AppError("Old Password & New Password Cannot be Same.",400);
-    };
+  // If Old Password Matched New Password then Throw a Error
+  if (oldPassword === newPassword) {
+    throw new AppError("Old Password & New Password Cannot be Same.", 400);
+  }
 
-    /* 
+  /* 
     When All Checks Get Password then save the Current Password Given By User to the Database,
     Which will Automatically get Encrypted Before Saving into Database. 
     */
 
-    user.password = newPassword;
+  user.password = newPassword;
 
-    await user.save();
+  await user.save();
 
-    // Generate Token & Send as Response
-    const token = user.getJwtToken();
-    user.password = undefined;
+  // Generate Token & Send as Response
+  const token = user.getJwtToken();
+  user.password = undefined;
 
-    //SET COOKIE & BEARER TOKEN VALUE AS "token"
-    res.cookie("token", token, CookieOptions);
+  //SET COOKIE & BEARER TOKEN VALUE AS "token"
+  res.cookie("token", token, CookieOptions);
 
-    // Sending Response if User Changed Password Successfully
-    return res.status(200).json({
-        success : true,
-        message : "Password Changed",
-        token,
-    });
-
+  // Sending Response if User Changed Password Successfully
+  return res.status(200).json({
+    success: true,
+    message: "Password Changed",
+    token,
+  });
 });
-
