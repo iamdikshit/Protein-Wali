@@ -16,12 +16,14 @@ export const Authentication = asyncHandler(async (req, _res, next) => {
   ) {
     // Fetching Token Value from either Cookies or From Bearer Token and Storing in "token".
     token = req.cookies.token || req.headers.authorization.split(" ")[1];
-  }
+  };
 
   // Checking Whether token (tokenValue) is present or not
   if (!token) {
-    throw new AppError("Not Authorized to Access this Route.", 401);
-  }
+
+    next(new AppError("Token is Invalid! Not Authorized to Access this Route.", 401));
+
+  };
 
   try {
     // Verifying Token
@@ -34,7 +36,11 @@ export const Authentication = asyncHandler(async (req, _res, next) => {
     );
 
     next();
+    
   } catch (error) {
+
     next(new AppError("Not Authorized to Access this Route.", 401));
-  }
+
+  };
+
 });

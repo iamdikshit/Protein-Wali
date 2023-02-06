@@ -1,4 +1,3 @@
-import asyncHandler from "../services/asyncHandler.js";
 import AppError from "../services/appError.js";
 
 export const PermittedRoles = (...permittedRoles) => {
@@ -13,7 +12,9 @@ export const PermittedRoles = (...permittedRoles) => {
 
         // Checking Whether user role is in the permittedRoles List
         if (!user && !permittedRoles.includes(user.role)){
-            return next ( new AppError("Forbidden", 403));  // user is Forbidden
+
+            return next(new AppError("Forbidden", 403));  // user is Forbidden
+            
         };
 
         next(); // Role is Allowed, So Continue on the Next Middleware
