@@ -52,7 +52,7 @@ export const signUp = asyncHandler(async (req, res, next) => {
     password,
   });
 
-    const token = user.getJwtToken();
+  const token = user.getJwtToken();
 
   // Setting Password undefined so that it couldn't be passed through token
   user.password = undefined;
@@ -78,18 +78,19 @@ export const signUp = asyncHandler(async (req, res, next) => {
  * @Returns Success Message => OTP Sent
  ******************************************************/
 
-export const signIn = asyncHandler (async (req,res) => {
-
-    //Collect Sign In Credentials
-    const { email , password } = req.body;
+export const signIn = asyncHandler(async (req, res) => {
+  //Collect Sign In Credentials
+  const { email, password } = req.body;
 
   // Validatation Check if email and password or either of them missing
   if (!email || !password) {
     throw new AppError("Credentials cannot be Empty!", 400);
   }
 
-    // Check user is in the Database or not while Selecting Password
-    const user = await User.findOne({email}).select("+password +otp +otpExpiry");
+  // Check user is in the Database or not while Selecting Password
+  const user = await User.findOne({ email }).select(
+    "+password +otp +otpExpiry"
+  );
 
   // Check Wether User Exists or Not
   if (!user) {
@@ -99,73 +100,61 @@ export const signIn = asyncHandler (async (req,res) => {
   // Compare Password Using Predefined Method in Schema "comparePassword"
   const ispasswordMatched = await user.comparePassword(password);
 
-    if(ispasswordMatched){
+  if (ispasswordMatched) {
+    // Token Generation using Predefined Method in User Schema
+    const token = user.getJwtToken();
 
-      // Token Generation using Predefined Method in User Schema
-      const token = user.getJwtToken();
+    // OTP Generation using Predefined Method in User Schema "generateOtp"
+    const otp = user.generateOtp();
 
-      // OTP Generation using Predefined Method in User Schema "generateOtp"
-      const otp = user.generateOtp();
-      
-      // Only Saving Data Without Running Validation in the Database - Forcefull Save
-      await user.save({validateBeforeSave : false});
-      
-      // Setting Password undefined so that it couldn't be passed through token
-      user.password = undefined;
+    // Only Saving Data Without Running Validation in the Database - Forcefull Save
+    await user.save({ validateBeforeSave: false });
 
-      //------------------------- Email Section -------------------------
+    // Setting Password undefined so that it couldn't be passed through token
+    user.password = undefined;
 
-      //Custom Text Message
-      const text = `Your Two-Factor Authentication Code : \n\n${otp}\n\n`;
+    //------------------------- Email Section -------------------------
 
-      //Custom HTML For Heading Highlighting 
-      const html = `<h3>Two-Factor Authentication Code<br></h3>
+    //Custom Text Message
+    const text = `Your Two-Factor Authentication Code : \n\n${otp}\n\n`;
+
+    //Custom HTML For Heading Highlighting
+    const html = `<h3>Two-Factor Authentication Code<br></h3>
                     <h2><b>${otp}</b></h2>`;
 
-      try {
+    try {
+      await MailHelper({
+        email: user.email,
+        subject: config.SMTP_MAIL_OTP_SUBJECT,
+        text: text,
+        html: html,
+      });
 
-          await MailHelper({
-            email : user.email,
-            subject : config.SMTP_MAIL_OTP_SUBJECT,
-            text : text,
-            html : html,
-          });
+      //SET COOKIE & BEARER TOKEN VALUE AS "token"
+      res.cookie("token", token, CookieOptions);
 
-          //SET COOKIE & BEARER TOKEN VALUE AS "token"
-          res.cookie("token", token, CookieOptions);
+      //If Mail Sent Successfully Send Response
+      return res.status(200).json({
+        success: true,
+        message: `OTP Sent to ${user.email}`,
+      });
+    } catch (error) {
+      // Rollback, Clear Fields & Save
+      user.otp = undefined;
+      user.otpExpiry = undefined;
 
-          //If Mail Sent Successfully Send Response
-          return res.status(200).json({
-            success : true,
-            message : `OTP Sent to ${user.email}`,
-            
-        });
+      // Forcefull Save
+      await user.save({ validateBeforeSave: false });
 
-      } catch (error) {
+      //SET COOKIE & BEARER TOKEN VALUE AS "null"
+      res.cookie("token", null, CookieOptions);
 
-          // Rollback, Clear Fields & Save 
-          user.otp = undefined;
-          user.otpExpiry = undefined;
+      throw new AppError(error.message || "OTP Sent Failure", 500);
+    }
+  }
 
-          // Forcefull Save
-          await user.save({validateBeforeSave : false});
-
-          //SET COOKIE & BEARER TOKEN VALUE AS "null"
-          res.cookie("token", null, CookieOptions);
-
-          throw new AppError(error.message||"OTP Sent Failure",500);
-      };
-
-    };
-
-    throw new AppError("Invalid Credentials!",400);
-
+  throw new AppError("Invalid Credentials!", 400);
 });
-
-
-
-
-
 
 /******************************************************
  * @TWO_FACTOR_OTP
@@ -177,41 +166,39 @@ export const signIn = asyncHandler (async (req,res) => {
  * @Returns Success Message
  ******************************************************/
 
-export const twoFactorOtp = asyncHandler(async (req,res) => {
-    
-    // Check for Authentication
-    const { email } = req.user;
+export const twoFactorOtp = asyncHandler(async (req, res) => {
+  // Check for Authentication
+  const { email } = req.user;
 
-    if(!email){
-      throw new AppError("Unauthorised",401);
-    };
+  if (!email) {
+    throw new AppError("Unauthorised", 401);
+  }
 
-    // Collect OTP from Frontend
-    const { otp } = req.body;
+  // Collect OTP from Frontend
+  const { otp } = req.body;
 
-    // If OTP is null Throw Error
-    if(!otp){
-      throw new AppError("OTP Cannot be Empty!",400);
-    };
+  // If OTP is null Throw Error
+  if (!otp) {
+    throw new AppError("OTP Cannot be Empty!", 400);
+  }
 
-    // Check user is in the Database
-    const user = await User.findOne({email});
+  // Check user is in the Database
+  const user = await User.findOne({ email });
 
-    if(!user){
-      throw new AppError("User Not Found.",404);
-    };
+  if (!user) {
+    throw new AppError("User Not Found.", 404);
+  }
 
-    if(user.otp === otp){
+  if (user.otp === otp) {
+    // Rollback, Clear Fields & Save
+    user.otp = undefined;
+    user.otpExpiry = undefined;
 
-      // Rollback, Clear Fields & Save 
-      user.otp = undefined;
-      user.otpExpiry = undefined;
+    // Token Generation using Predefined Method in User Schema
+    const token = user.getJwtToken();
 
-      // Token Generation using Predefined Method in User Schema
-      const token = user.getJwtToken();
-
-      //SET COOKIE & BEARER TOKEN VALUE AS "token"
-      res.cookie("token", token, CookieOptions);
+    //SET COOKIE & BEARER TOKEN VALUE AS "token"
+    res.cookie("token", token, CookieOptions);
 
     // Sending Response if User gets SignIn Successfully
     return res.status(200).json({
@@ -221,16 +208,8 @@ export const twoFactorOtp = asyncHandler(async (req,res) => {
     });
   }
 
-    };
-
-    throw new AppError("Invalid OTP!",400);
-
+  throw new AppError("Invalid OTP!", 400);
 });
-
-
-
-
-
 
 /******************************************************
  * @RESEND_OTP
@@ -242,81 +221,69 @@ export const twoFactorOtp = asyncHandler(async (req,res) => {
  * @Returns Success Message => OTP Resend
  ******************************************************/
 
-export const resendOtp = asyncHandler(async (req,res) => {
-
+export const resendOtp = asyncHandler(async (req, res) => {
   // Check for Authentication
   const { email } = req.user;
 
-  if(!email){
-    throw new AppError("Unauthorised",401);
-  };
+  if (!email) {
+    throw new AppError("Unauthorised", 401);
+  }
 
   // Check user is in the Database
-  const user = await User.findOne({email});
+  const user = await User.findOne({ email });
 
-  
-  if(!user){
-    throw new AppError("User Not Found.",404);
-  };
-  
+  if (!user) {
+    throw new AppError("User Not Found.", 404);
+  }
+
   // OTP Generation using Predefined Method in User Schema "generateOtp"
   const otp = user.generateOtp();
-  
+
   // Only Saving Data Without Running Validation in the Database - Forcefull Save
-  await user.save({validateBeforeSave : false});
+  await user.save({ validateBeforeSave: false });
 
   // Token Generation using Predefined Method in User Schema
   const token = user.getJwtToken();
-  
+
   //------------------------- Email Section -------------------------
 
   //Custom Text Message
   const text = `Your Two-Factor Authentication Code : \n\n<b>${otp}</b>\n\n`;
 
-  //Custom HTML For Heading Highlighting 
+  //Custom HTML For Heading Highlighting
   const html = `<h3>Two-Factor Authentication Code<br></h3>
                 <h2><b>${otp}</b></h2>`;
 
   try {
-
-      await MailHelper({
-        email : user.email,
-        subject : config.SMTP_MAIL_OTP_SUBJECT,
-        text : text,
-        html : html,
-      });
-
-      //SET COOKIE & BEARER TOKEN VALUE AS "token"
-      res.cookie("token", token, CookieOptions);
-
-      //If Mail Sent Successfully Send Response
-      return res.status(200).json({
-        success : true,
-        message : `OTP Resend to ${user.email}`,
-        
+    await MailHelper({
+      email: user.email,
+      subject: config.SMTP_MAIL_OTP_SUBJECT,
+      text: text,
+      html: html,
     });
 
+    //SET COOKIE & BEARER TOKEN VALUE AS "token"
+    res.cookie("token", token, CookieOptions);
+
+    //If Mail Sent Successfully Send Response
+    return res.status(200).json({
+      success: true,
+      message: `OTP Resend to ${user.email}`,
+    });
   } catch (error) {
+    // Rollback, Clear Fields & Save
+    user.otp = undefined;
+    user.otpExpiry = undefined;
 
-      // Rollback, Clear Fields & Save 
-      user.otp = undefined;
-      user.otpExpiry = undefined;
+    // Forcefull Save
+    await user.save({ validateBeforeSave: false });
 
-      // Forcefull Save
-      await user.save({validateBeforeSave : false});
+    //SET COOKIE & BEARER TOKEN VALUE AS "null"
+    res.cookie("token", null, CookieOptions);
 
-      //SET COOKIE & BEARER TOKEN VALUE AS "null"
-      res.cookie("token", null, CookieOptions);
-
-      throw new AppError(error.message||"OTP Resend Failure",500);
-  };
-
+    throw new AppError(error.message || "OTP Resend Failure", 500);
+  }
 });
-
-
-
-
-
 
 /******************************************************
  * @SIGNOUT
