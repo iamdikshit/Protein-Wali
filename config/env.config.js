@@ -23,6 +23,7 @@ const config = {
     SMTP_MAIL_SENDER_NAME : process.env.SMTP_MAIL_SENDER_NAME,
     SMTP_MAIL_SENDER_EMAIL : process.env.SMTP_MAIL_SENDER_EMAIL,
     SMTP_MAIL_RESET_PASSWORD_SUBJECT : process.env.SMTP_MAIL_RESET_PASSWORD_SUBJECT,
+    SMTP_MAIL_OTP_SUBJECT : process.env.SMTP_MAIL_OTP_SUBJECT,
 };
 
 export default config;

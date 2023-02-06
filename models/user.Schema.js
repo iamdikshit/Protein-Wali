@@ -7,6 +7,7 @@ import config from "../config/env.config.js";
 
 
 
+
 // User Schema
 const userSchema = mongoose.Schema(
     {
@@ -92,6 +93,14 @@ const userSchema = mongoose.Schema(
             enum : Object.values(AuthRoles),
             default : AuthRoles.USER,
         },
+
+        otp : {
+            type : String,
+        },
+
+        otpExpiry : {
+            type : Date,
+        },
         
         forgotPasswordToken : {
             type : String,
@@ -152,6 +161,7 @@ userSchema.methods = {
     // Generate Forgot Password Token TOKEN
 
     generateForgotPasswordToken : function () {
+
         const forgotToken = crypto.randomBytes(20).toString("hex");
 
         // Step 1 - Save to Database
@@ -165,7 +175,28 @@ userSchema.methods = {
         // Step 2 - Return values to user
 
         return forgotToken;
+
     },
+
+    // Generate OTP
+
+    generateOtp : function () {
+
+        const otp = `${Math.floor(Math.random()*1000000)}`;
+
+        // Step 1 - Save to Database
+
+        // Saving OTP in Database
+        this.otp = otp
+
+        // Setting OTP Expiry
+        this.otpExpiry = Date.now() + 5 * 60 * 1000;
+
+        // Step 2 - Return values to user
+
+        return otp;
+    },
+
 };
 
 export default mongoose.model("User",userSchema);
