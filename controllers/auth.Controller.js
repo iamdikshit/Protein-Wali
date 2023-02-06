@@ -19,7 +19,7 @@ import crypto from "crypto";
  * @Description User signUp Controller for creating new user
  * @Middleware None
  * @Parameters name, email, password, confirmPassword
- * @Returns User Object
+ * @Returns Success Message
  ******************************************************/
 
 export const signUp = asyncHandler ( async (req, res) => {
@@ -57,7 +57,6 @@ export const signUp = asyncHandler ( async (req, res) => {
     });
 
     const token = user.getJwtToken();
-    console.log(token);
 
     // Setting Password undefined so that it couldn't be passed through token
     user.password = undefined;
@@ -88,13 +87,13 @@ export const signUp = asyncHandler ( async (req, res) => {
  * @Description User signIn Controller for signing in user
  * @Middleware None
  * @Parameters email, password
- * @Returns User Object
+ * @Returns Success Message => OTP Sent
  ******************************************************/
 
 export const signIn = asyncHandler (async (req,res) => {
 
     //Collect Sign In Credentials
-    const { email,password } = req.body;
+    const { email , password } = req.body;
 
     // Validatation Check if email and password or either of them missing
     if(!email || !password){
@@ -102,7 +101,7 @@ export const signIn = asyncHandler (async (req,res) => {
     };
 
     // Check user is in the Database or not while Selecting Password
-    const user = await User.findOne({email}).select("+password");
+    const user = await User.findOne({email}).select("+password +otp +otpExpiry");
 
      // Check Wether User Exists or Not
     if(!user){
@@ -113,15 +112,118 @@ export const signIn = asyncHandler (async (req,res) => {
     const ispasswordMatched = await user.comparePassword(password);
 
     if(ispasswordMatched){
+
       // Token Generation using Predefined Method in User Schema
       const token = user.getJwtToken();
-      console.log(token);
+
+      // OTP Generation using Predefined Method in User Schema "generateOtp"
+      const otp = user.generateOtp();
+      
+      // Only Saving Data Without Running Validation in the Database - Forcefull Save
+      await user.save({validateBeforeSave : false});
+      
       // Setting Password undefined so that it couldn't be passed through token
       user.password = undefined;
 
+      //------------------------- Email Section -------------------------
+
+      //Custom Text Message
+      const text = `Your Two-Factor Authentication Code : \n\n${otp}\n\n`;
+
+      //Custom HTML For Heading Highlighting 
+      const html = `<h3>Two-Factor Authentication Code<br></h3>
+                    <h2><b>${otp}</b></h2>`;
+
+      try {
+
+          await MailHelper({
+            email : user.email,
+            subject : config.SMTP_MAIL_OTP_SUBJECT,
+            text : text,
+            html : html,
+          });
+
+          //SET COOKIE & BEARER TOKEN VALUE AS "token"
+          res.cookie("token", token, CookieOptions);
+
+          //If Mail Sent Successfully Send Response
+          return res.status(200).json({
+            success : true,
+            message : `OTP Sent to ${user.email}`,
+            
+        });
+
+      } catch (error) {
+
+          // Rollback, Clear Fields & Save 
+          user.otp = undefined;
+          user.otpExpiry = undefined;
+
+          // Forcefull Save
+          await user.save({validateBeforeSave : false});
+
+          //SET COOKIE & BEARER TOKEN VALUE AS "null"
+          res.cookie("token", null, CookieOptions);
+
+          throw new AppError(error.message||"OTP Sent Failure",500);
+      };
+
+    };
+
+    throw new AppError("Invalid Credentials!",400);
+
+});
+
+
+
+
+
+
+/******************************************************
+ * @TWO_FACTOR_OTP
+ * @REQUEST_TYPE POST
+ * @Route       /twofactor/otp
+ * @Description User Two Factor Otp Controller for User's Two Factor Authentication Using OTP
+ * @Middleware auth.Middleware
+ * @Parameters otp
+ * @Returns Success Message
+ ******************************************************/
+
+export const twoFactorOtp = asyncHandler(async (req,res) => {
+    
+    // Check for Authentication
+    const { email } = req.user;
+
+    if(!email){
+      throw new AppError("Unauthorised",401);
+    };
+
+    // Collect OTP from Frontend
+    const { otp } = req.body;
+
+    // If OTP is null Throw Error
+    if(!otp){
+      throw new AppError("OTP Cannot be Empty!",400);
+    };
+
+    // Check user is in the Database
+    const user = await User.findOne({email});
+
+    if(!user){
+      throw new AppError("User Not Found.",404);
+    };
+
+    if(user.otp === otp){
+
+      // Rollback, Clear Fields & Save 
+      user.otp = undefined;
+      user.otpExpiry = undefined;
+
+      // Token Generation using Predefined Method in User Schema
+      const token = user.getJwtToken();
+
       //SET COOKIE & BEARER TOKEN VALUE AS "token"
       res.cookie("token", token, CookieOptions);
-
 
       // Sending Response if User gets SignIn Successfully
       return res.status(200).json({
@@ -132,9 +234,96 @@ export const signIn = asyncHandler (async (req,res) => {
 
     };
 
-    throw new AppError("Invalid Credentials!",400);
+    throw new AppError("Invalid OTP!",400);
 
 });
+
+
+
+
+
+
+/******************************************************
+ * @RESEND_OTP
+ * @REQUEST_TYPE PATCH
+ * @Route       /resend/otp
+ * @Description User Resend Otp Controller for Resending OTP
+ * @Middleware auth.Middleware
+ * @Parameters none
+ * @Returns Success Message => OTP Resend
+ ******************************************************/
+
+export const resendOtp = asyncHandler(async (req,res) => {
+
+  // Check for Authentication
+  const { email } = req.user;
+
+  if(!email){
+    throw new AppError("Unauthorised",401);
+  };
+
+  // Check user is in the Database
+  const user = await User.findOne({email});
+
+  
+  if(!user){
+    throw new AppError("User Not Found.",404);
+  };
+  
+  // OTP Generation using Predefined Method in User Schema "generateOtp"
+  const otp = user.generateOtp();
+  
+  // Only Saving Data Without Running Validation in the Database - Forcefull Save
+  await user.save({validateBeforeSave : false});
+
+  // Token Generation using Predefined Method in User Schema
+  const token = user.getJwtToken();
+  
+  //------------------------- Email Section -------------------------
+
+  //Custom Text Message
+  const text = `Your Two-Factor Authentication Code : \n\n<b>${otp}</b>\n\n`;
+
+  //Custom HTML For Heading Highlighting 
+  const html = `<h3>Two-Factor Authentication Code<br></h3>
+                <h2><b>${otp}</b></h2>`;
+
+  try {
+
+      await MailHelper({
+        email : user.email,
+        subject : config.SMTP_MAIL_OTP_SUBJECT,
+        text : text,
+        html : html,
+      });
+
+      //SET COOKIE & BEARER TOKEN VALUE AS "token"
+      res.cookie("token", token, CookieOptions);
+
+      //If Mail Sent Successfully Send Response
+      return res.status(200).json({
+        success : true,
+        message : `OTP Resend to ${user.email}`,
+        
+    });
+
+  } catch (error) {
+
+      // Rollback, Clear Fields & Save 
+      user.otp = undefined;
+      user.otpExpiry = undefined;
+
+      // Forcefull Save
+      await user.save({validateBeforeSave : false});
+
+      //SET COOKIE & BEARER TOKEN VALUE AS "null"
+      res.cookie("token", null, CookieOptions);
+
+      throw new AppError(error.message||"OTP Resend Failure",500);
+  };
+
+});
+
 
 
 
@@ -256,7 +445,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
  * @Description User will be able to reset password based on url token
  * @Middleware None
  * @Parameters Token from the Url, Password & Confirm Password
- * @Returns User Object
+ * @Returns Success Message
  ******************************************************/
 
 export const resetPassword = asyncHandler(async (req,res) => {

@@ -1,5 +1,5 @@
 import express from 'express'
-import { signUp, signIn, signOut, forgotPassword, resetPassword, changePassword } from "../controllers/auth.Controller.js";
+import { signUp, signIn, signOut, forgotPassword, resetPassword, changePassword, twoFactorOtp, resendOtp } from "../controllers/auth.Controller.js";
 import { updateUser, deleteUser, getProfile, getUserById, getAllUsers } from "../controllers/user.Controller.js";
 import { Authentication } from "../middlewares/auth.Middleware.js";
 import { PermittedRoles } from "../middlewares/roles.Middleware.js";
@@ -12,16 +12,29 @@ const Router = express.Router();
 /*****************************************************************
  * @AUTH_ROUTES
  * @Route_1   /signup                 @REQUEST_TYPE : POST
+
  * @Route_2   /signin                 @REQUEST_TYPE : POST
+
+ * @Route_2   /twofactor/otp          @REQUEST_TYPE : POST
+ *                                    @MIDDLEWARE   : Authentication
+
+ * @Route_2   /resend/otp             @REQUEST_TYPE : PATCH
+ *                                    @MIDDLEWARE   : Authentication
+
  * @Route_3   /signout                @REQUEST_TYPE : POST
+
  * @Route_4   /password/forgot        @REQUEST_TYPE : POST
+
  * @Route_5   /password/reset/:token  @REQUEST_TYPE : PATCH
+
  * @Route_6   /password/change        @REQUEST_TYPE : PATCH
  *                                    @MIDDLEWARE   : Authentication
  *****************************************************************/
 
   Router.post("/signup", signUp);
   Router.post("/signin", signIn);
+  Router.post("/twofactor/otp", Authentication ,twoFactorOtp);
+  Router.patch("/resend/otp", Authentication ,resendOtp);
   Router.post("/signout", signOut);
   Router.post("/password/forgot", forgotPassword);
   Router.patch("/password/reset/:token", resetPassword);
@@ -45,7 +58,7 @@ const Router = express.Router();
  * @Route_3         /profile               @REQUEST_TYPE : POST
  *                                         @MIDDLEWARE   : Authentication
  * 
- * @Route_4         /:id             @REQUEST_TYPE : POST
+ * @Route_4         /:id                   @REQUEST_TYPE : POST
  *                                         @MIDDLEWARE   : Authentication, PermittedRoles(MODERATOR, ADMIN)
  * 
  * @Route_5        /                       @REQUEST_TYPE : POST
