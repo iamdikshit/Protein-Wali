@@ -1,6 +1,7 @@
 import express from "express";
 import { Authentication } from "../middlewares/auth.Middleware.js";
 import {
+  getCategoryById,
   getAllCategories,
   insertCategory,
   updateCategory,
@@ -32,6 +33,6 @@ Router.use(Authentication, PermittedRoles(Roles.MODERATOR, Roles.ADMIN));
 
 Router.route("/").get(getAllCategories).post(insertCategory);
 
-Router.route("/:id").patch(updateCategory).delete(deleteCategory);
+Router.route("/:id").get(getCategoryById).patch(updateCategory).delete(deleteCategory);
 
 export default Router;
