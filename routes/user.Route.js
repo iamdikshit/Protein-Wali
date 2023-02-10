@@ -1,9 +1,11 @@
-import express from 'express'
+import express from "express";
 import { signUp, signIn, signOut, forgotPassword, resetPassword, changePassword, twoFactorOtp, resendOtp } from "../controllers/auth.Controller.js";
 import { updateUser, deleteUser, getProfile, getUserById, getAllUsers } from "../controllers/user.Controller.js";
 import { Authentication } from "../middlewares/auth.Middleware.js";
 import { PermittedRoles } from "../middlewares/roles.Middleware.js";
 import Roles from "../utils/roles.js";
+
+
 
 
 
@@ -60,7 +62,7 @@ const Router = express.Router();
  * @Route_3         /profile               @REQUEST_TYPE : GET (GET USER PROFILE)
  *                                         @MIDDLEWARE   : Authentication
  * 
- * @Route_4         /all                   @REQUEST_TYPE : GET (GET ALL USER)
+ * @Route_4         /all                   @REQUEST_TYPE : GET (GET ALL USERS)
  *                                         @MIDDLEWARE   : Authentication, PermittedRoles(MODERATOR, ADMIN)
  * 
  * @Route_5        /:id                    @REQUEST_TYPE : GET (GET USER BY ID)
@@ -78,6 +80,7 @@ Router.route("/:id")
 Router.get("/profile", Authentication, getProfile);
 
 Router.get("/all", Authentication, PermittedRoles(Roles.MODERATOR, Roles.ADMIN), getAllUsers);
+
 
 
 
