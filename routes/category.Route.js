@@ -9,13 +9,17 @@ import {
 } from "../controllers/category.Controller.js";
 import { PermittedRoles } from "../middlewares/roles.Middleware.js";
 import Roles from "../utils/roles.js";
+
+
+
+
 const Router = express.Router();
 
 
 /******************************************************************************************
  * @CATEGORY_ROUTES
  * 
- * @Route_1         /                      @REQUEST_TYPE : GET (GET ALL CATEGORY)
+ * @Route_1         /                      @REQUEST_TYPE : GET (GET ALL CATEGORIES)
  *                                         @MIDDLEWARE   : Authentication, PermittedRoles(MODERATOR, ADMIN)
  * 
  * @Route_2         /                      @REQUEST_TYPE : POST (INSERT CATEGORY)
@@ -25,6 +29,9 @@ const Router = express.Router();
  *                                         @MIDDLEWARE   : Authentication, PermittedRoles(MODERATOR, ADMIN)
  * 
  * @Route_4         /:id                   @REQUEST_TYPE : DELETE (DELETE CATEGORY)
+ *                                         @MIDDLEWARE   : Authentication, PermittedRoles(MODERATOR, ADMIN)
+ * 
+ * @Route_4         /:id                   @REQUEST_TYPE : GET (GET CATEGORY BY ID)
  *                                         @MIDDLEWARE   : Authentication, PermittedRoles(MODERATOR, ADMIN)
  ******************************************************************************************/
 
