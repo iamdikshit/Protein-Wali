@@ -68,6 +68,11 @@ const productSchema = mongoose.Schema(
                                     default : 0,
                                   },
 
+                                  amount : {
+                                    type : Number,
+                                    min : [0, "Amount Cannot Be less than 0."],
+                                  },
+
                         },
 
                         coupon : {
@@ -131,7 +136,7 @@ productSchema.pre("save", function (next) {
 
     return (sku.sub_variants).map(sub_variant => {
 
-        return (Math.round(sub_variant.price.base-(sub_variant.price.base*(sub_variant.price.discount/100))));
+        return sub_variant.price.amount = Math.round(sub_variant.price.base - (sub_variant.price.base * ( sub_variant.price.discount / 100)));
 
     });
 
