@@ -8,11 +8,11 @@ import PhoneNumberValidation from "../utils/phoneNumberValidation.js"
 /******************************************************
  * @UPDATE_USER
  * @REQUEST_TYPE PUT
- * @Route       /update/:id
+ * @Route       /:id
  * @Description User Controller for Updating Existing User
- * @Middleware roles.Middleware
+ * @Middleware auth.Middleware
  * @Parameters id
- * @Returns User Object
+ * @Returns Success Message
  ******************************************************/
 
 export const updateUser = asyncHandler(async (req, res, next) =>{
@@ -110,11 +110,11 @@ export const updateUser = asyncHandler(async (req, res, next) =>{
 /******************************************************
  * @DELETE_USER
  * @REQUEST_TYPE DELETE
- * @Route       /delete/:id
+ * @Route       /:id
  * @Description User Controller for Deleting Existing User
- * @Middleware roles.Middleware
+ * @Middleware auth.Middleware, roles.Middleware
  * @Parameters id
- * @Returns User Object
+ * @Returns Success Message
  ******************************************************/
 
 export const deleteUser = asyncHandler(async (req, res, next) => {
@@ -153,7 +153,7 @@ export const deleteUser = asyncHandler(async (req, res, next) => {
  * @Description Check for token and Populate req.user
  * @Middleware auth.Middleware
  * @Parameters None
- * @Returns User Object
+ * @Returns Success Message, User Object
  ******************************************************/
 
 export const getProfile = asyncHandler(async (req, res, next)=>{
@@ -180,12 +180,12 @@ export const getProfile = asyncHandler(async (req, res, next)=>{
 /******************************************************
  * @GET_USER_BY_ID
  * @REQUEST_TYPE GET
- * @Route       /fetch/:id
+ * @Route       /:id
  * @Description 1.Controller used for Getting Single User Detail
  *              2. Moderator and Admin can get Single User detail
- * @Middleware roles.Middleware
+ * @Middleware auth.Middleware, roles.Middleware
  * @Parameters ID
- * @Returns User Object
+ * @Returns Success Message, User Object
  ******************************************************/
 
 export const getUserById = asyncHandler (async (req, res, next) => {
@@ -219,12 +219,12 @@ export const getUserById = asyncHandler (async (req, res, next) => {
 /******************************************************
  * @GET_ALL_USER
  * @REQUEST_TYPE GET
- * @Route       /fetch/all
+ * @Route       /all
  * @Description 1.Controller used for Getting all Users Details
  *              2. Moderator and Admin can get all the Users
- * @Middleware roles.Middleware
+ * @Middleware auth.Middleware, roles.Middleware
  * @Parameters None
- * @Returns User Object
+ * @Returns Success Message, User Object
  ******************************************************/
 
 export const getAllUsers = asyncHandler (async (_req, res, next) => {
@@ -243,6 +243,7 @@ export const getAllUsers = asyncHandler (async (_req, res, next) => {
     return res.status(201).json({
         success : true,
         message : "Fetched All Users Details Successfully.",
+        results: users.length,
         users,
     });
 

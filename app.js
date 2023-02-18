@@ -6,8 +6,8 @@ import AppError from "./services/appError.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import globalErroHandller from "./controllers/error.Controller.js";
-import categoryRoute from "./routes/category.Route.js";
-import productRoute from "./routes/product.Route.js";
+import CategoryRoute from "./routes/category.Route.js";
+import ProductRoute from "./routes/product.Route.js";
 
 const app = express();
 
@@ -40,17 +40,30 @@ if (config.NODE_ENV.trim() == "development") {
  * @Route_4   /api/v1/user/:id
  * @Route_5   /api/v1/user/all
  ******************************************************/
+
 app.use("/api/v1/user", UserRoute);
 
 /*******************************
  * @CATEGORY_ROUTES
+ * @Route_1   /api/v1/category/             (GET ALL CATEGORIES)
+ * @Route_2   /api/v1/category/             (INSERT CATEGORY)
+ * @Route_4   /api/v1/category/:id          (UPDATE CATEGORY)
+ * @Route_5   /api/v1/category/:id          (DELETE CATEGORY)
+ * @Route_6   /api/v1/category/:id          (GET USER BY ID)
  *******************************/
-app.use("/api/v1/category", categoryRoute);
+
+app.use("/api/v1/category", CategoryRoute);
 
 /*******************************
  * @PRODUCT_ROUTES
+ * @Route_1   /api/v1/product/             (GET ALL PRODUCTS)
+ * @Route_2   /api/v1/product/             (INSERT PRODUCT)
+ * @Route_4   /api/v1/product/:id          (UPDATE PRODUCT)
+ * @Route_5   /api/v1/product/:id          (DELETE PRODUCT)
+ * @Route_6   /api/v1/product/:id          (GET PRODUCT BY ID)
  *******************************/
-app.use("/api/v1/product", productRoute);
+
+app.use("/api/v1/product", ProductRoute);
 
 // ERROR HANDLER FOR NOT SERVER URL
 

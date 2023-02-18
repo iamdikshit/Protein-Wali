@@ -4,7 +4,7 @@ const categorySchema = mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Category field cannot be empty!"],
+      required: [true, "Category Field Cannot be Empty!"],
       unique: true,
       trim: true,
     },
@@ -15,5 +15,5 @@ const categorySchema = mongoose.Schema(
   }
 );
 
-const Category = mongoose.model("Categorie", categorySchema);
-export default Category;
+export default mongoose.model("Categorie", categorySchema);
+ 

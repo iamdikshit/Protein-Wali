@@ -1,56 +1,110 @@
 import mongoose from "mongoose";
 import slugify from "slugify";
+import Currency from "../utils/currency.js";
 
 const productSchema = mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Product name cannot be empty!"],
+      required: [true, "Product Name Cannot be Empty!"],
       trim: true,
     },
+
+    brand: {
+      type: String,
+      required: [true, "Brand Name Cannot be Empty!"],
+    },
+
     category: {
       type: mongoose.Schema.ObjectId,
       ref: "Categorie",
     },
-    spacification: [{}],
+
     description: {
       type: String,
       trim: true,
-      required: [true, "Product description cannot be empty!"],
+      required: [true, "Product Description Cannot be Empty!"],
     },
+
     images: {
       type: [String],
     },
-    mrp: {
-      type: Number,
-      required: [true, "MRP field cannot be empty!"],
-      min: [0, "Price must be grater than 0"],
+
+    slug: {
+      type: String,
     },
-    discount: {
-      type: Number,
-      min: 0,
-      max: 100,
-      default: 0,
-    },
-    price: {
-      type: Number,
-      min: 0,
-    },
-    slug: String,
-    stock: {
-      type: Number,
-      min: 0,
-      required: [true, "Stock field cannot be empty!"],
-    },
-    sold: {
-      type: Number,
-      min: 0,
-    },
+
+    inventory: [
+      {
+        sku_variant: {
+          type: {},
+          max: 1,
+        },
+
+        sub_variants: [
+          {
+            sub_variant: {
+              type: {},
+              max: 1,
+            },
+
+            price: {
+              base: {
+                type: Number,
+                min: [0, "Base Price Cannot Be less than 0."],
+                required: true,
+              },
+
+              currency: {
+                type: String,
+                default: Currency.INR,
+              },
+
+              discount: {
+                type: Number,
+                min: [0, "Dicount Cannot Be Less than 0."],
+                max: [100, "Discount Cannot Exceed 100."],
+                default: 0,
+              },
+
+              amount: {
+                type: Number,
+                min: [0, "Amount Cannot Be less than 0."],
+              },
+            },
+
+            coupon: {
+              type: mongoose.Schema.ObjectId,
+              ref: "Coupon",
+            },
+
+            in_stock: {
+              type: Boolean,
+              default: true,
+            },
+
+            stock: {
+              quantity: {
+                type: Number,
+                min: 0,
+              },
+
+              sold: {
+                type: Number,
+                min: 0,
+              },
+            },
+          },
+        ],
+      },
+    ],
+
     isActive: {
       type: Boolean,
       default: true,
     },
   },
+
   {
     timestamps: true,
   }
@@ -59,6 +113,7 @@ const productSchema = mongoose.Schema(
 /*
 @DOCUMENT MIDDLEWARE TO MAKE THE SLUG USING PRODUCT NAME
 */
+
 productSchema.pre("save", function (next) {
   this.slug = slugify(this.name, { lower: true });
   next();
@@ -68,7 +123,15 @@ productSchema.pre("save", function (next) {
 @DOCUMENT MIDDLEWARE TO CALCULATE THE PRICE BASED ON MRP AND DISCOUNT
 */
 productSchema.pre("save", function (next) {
-  this.price = Math.round(this.mrp - this.mrp * (this.discount / 100));
+  this.product.inventory.map((sku) => {
+    return sku.sub_variants.map((sub_variant) => {
+      return (sub_variant.price.amount = Math.round(
+        sub_variant.price.base -
+          sub_variant.price.base * (sub_variant.price.discount / 100)
+      ));
+    });
+  });
+
   next();
 });
 

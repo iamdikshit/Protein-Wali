@@ -1,4 +1,4 @@
-import express from 'express'
+import express from "express";
 import { signUp, signIn, signOut, forgotPassword, resetPassword, changePassword, twoFactorOtp, resendOtp } from "../controllers/auth.Controller.js";
 import { updateUser, deleteUser, getProfile, getUserById, getAllUsers } from "../controllers/user.Controller.js";
 import { Authentication } from "../middlewares/auth.Middleware.js";
@@ -7,10 +7,13 @@ import Roles from "../utils/roles.js";
 
 
 
+
+
 const Router = express.Router();
 
 /*****************************************************************
  * @AUTH_ROUTES
+ * 
  * @Route_1   /signup                 @REQUEST_TYPE : POST
 
  * @Route_2   /signin                 @REQUEST_TYPE : POST
@@ -49,27 +52,35 @@ const Router = express.Router();
 
 /******************************************************************************************
  * @USER_ROUTES
- * @Route_1         /update/:id            @REQUEST_TYPE : PUT
+ * 
+ * @Route_1         /:id                   @REQUEST_TYPE : PUT (UPDATE USER)
  *                                         @MIDDLEWARE   : Authentication
  * 
- * @Route_2         /delete/:id            @REQUEST_TYPE : DELETE
+ * @Route_2         /:id                   @REQUEST_TYPE : DELETE (DELETE USER)
  *                                         @MIDDLEWARE   : Authentication, PermittedRoles(ADMIN)
  * 
- * @Route_3         /profile               @REQUEST_TYPE : POST
+ * @Route_3         /profile               @REQUEST_TYPE : GET (GET USER PROFILE)
  *                                         @MIDDLEWARE   : Authentication
  * 
- * @Route_4         /:id                   @REQUEST_TYPE : POST
+ * @Route_4         /all                   @REQUEST_TYPE : GET (GET ALL USERS)
  *                                         @MIDDLEWARE   : Authentication, PermittedRoles(MODERATOR, ADMIN)
  * 
- * @Route_5        /                       @REQUEST_TYPE : POST
+ * @Route_5        /:id                    @REQUEST_TYPE : GET (GET USER BY ID)
  *                                         @MIDDLEWARE   : Authentication, PermittedRoles(MODERATOR, ADMIN)
  ******************************************************************************************/
 
-  Router.put("/update/:id", Authentication, updateUser);
-  Router.delete("/delete/:id", Authentication, PermittedRoles(Roles.ADMIN), deleteUser);
-  Router.get("/profile", Authentication, getProfile);
-  Router.get("/all", Authentication, PermittedRoles(Roles.MODERATOR, Roles.ADMIN), getAllUsers);
-  Router.get("/:id", Authentication, PermittedRoles(Roles.MODERATOR, Roles.ADMIN), getUserById);
+Router.route("/:id")
+
+.put(Authentication, updateUser)
+
+.get(Authentication, PermittedRoles(Roles.MODERATOR, Roles.ADMIN), getUserById)
+
+.delete(Authentication, PermittedRoles(Roles.ADMIN), deleteUser);
+
+Router.get("/profile", Authentication, getProfile);
+
+Router.get("/all", Authentication, PermittedRoles(Roles.MODERATOR, Roles.ADMIN), getAllUsers);
+
 
 
 

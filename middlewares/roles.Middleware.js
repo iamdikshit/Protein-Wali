@@ -5,16 +5,18 @@ export const PermittedRoles = (...permittedRoles) => {
 
   // Return Middleware
   return (req, _res, next) => {
+    
     // Taking Out user from Request
     const { user } = req;
 
     // Checking Whether user role is in the permittedRoles List
     if (!permittedRoles.includes(user.role)) {
       return next(
-        new AppError("You do not have permission to perform this action", 403)
+        new AppError("Permission Denied!", 403)
       ); // user is Forbidden
-    }
+    };
 
     next(); // Role is Allowed, So Continue on the Next Middleware
+
   };
 };
