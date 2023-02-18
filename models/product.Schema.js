@@ -14,7 +14,10 @@ const productSchema = mongoose.Schema(
       type: String,
       required: [true, "Brand Name Cannot be Empty!"],
     },
-
+    manufaturer: {
+      type: String,
+      required: [true, "Brand Name Cannot be Empty!"],
+    },
     category: {
       type: mongoose.Schema.ObjectId,
       ref: "Categorie",
@@ -33,72 +36,32 @@ const productSchema = mongoose.Schema(
     slug: {
       type: String,
     },
-
-    inventory: [
-      {
-        sku_variant: {
-          type: {},
-          max: 1,
-        },
-
-        sub_variants: [
-          {
-            sub_variant: {
-              type: {},
-              max: 1,
-            },
-
-            price: {
-              base: {
-                type: Number,
-                min: [0, "Base Price Cannot Be less than 0."],
-                required: true,
-              },
-
-              currency: {
-                type: String,
-                default: Currency.INR,
-              },
-
-              discount: {
-                type: Number,
-                min: [0, "Dicount Cannot Be Less than 0."],
-                max: [100, "Discount Cannot Exceed 100."],
-                default: 0,
-              },
-
-              amount: {
-                type: Number,
-                min: [0, "Amount Cannot Be less than 0."],
-              },
-            },
-
-            coupon: {
-              type: mongoose.Schema.ObjectId,
-              ref: "Coupon",
-            },
-
-            in_stock: {
-              type: Boolean,
-              default: true,
-            },
-
-            stock: {
-              quantity: {
-                type: Number,
-                min: 0,
-              },
-
-              sold: {
-                type: Number,
-                min: 0,
-              },
-            },
-          },
-        ],
+    pricing: {
+      price: {
+        type: Number,
+        required: [true, "Price Cannot be Empty!"],
       },
-    ],
-
+      Compare_at_price: {
+        type: Number,
+      },
+      cost_per_item: {
+        type: Number,
+      },
+      profits: {
+        profit: {
+          type: Number,
+        },
+        margin: {
+          type: Number,
+        },
+      },
+    },
+    sku_name: {
+      type: String,
+      trim: true,
+    },
+    options: [],
+    varients: [],
     isActive: {
       type: Boolean,
       default: true,
