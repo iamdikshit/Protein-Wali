@@ -17,7 +17,7 @@ const Router = express.Router();
  * /id               @REQUEST_TYPE : PATCH (update category)
  * /id               @REQUEST_TYPE : DELETE (delete category)
  *****************************************************************/
-Router.use(Authentication, PermittedRoles(Roles.MODERATOR, Roles.ADMIN));
+// Router.use(Authentication, PermittedRoles(Roles.MODERATOR, Roles.ADMIN));
 Router.route("/").get(getAllCategories).post(insertCategory);
 Router.route("/:id").patch(updateCategory).delete(deleteCategory);
 

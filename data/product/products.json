@@ -1,0 +1,16 @@
+[
+  {
+    "name": "ONN protein 1lbs",
+    "category": "63e127ea8ee327c8c7413359",
+    "spacification": [
+      {
+        "flavor": ["Chocolate", "Vanilla", "Mango"],
+        "Weight": ["1lbs", "2lbs", "3lbs"]
+      }
+    ],
+    "description": "New to the world of protein or looking to re-ignite your nutrition journey? We’ve made it simple to get started with our Whey Protein Starter Pack. Everyone can benefit from an everyday protein boost and that’s why we have designed products to help increase your daily protein intake in delicious and hassle-free way.Whether your goal is to hit the gym or simply switch up your lifestyle choices, find what fits for you for a fraction of the cost.",
+    "mrp": 4200,
+    "discount": 20,
+    "stock": 10
+  }
+]

@@ -1,5 +1,6 @@
 import express from "express";
 import { Authentication } from "../middlewares/auth.Middleware.js";
+import { getAllProducts } from "../controllers/product.Controller.js";
 const Router = express.Router();
 
 /*****************************************************************
@@ -7,5 +8,5 @@ const Router = express.Router();
  * /                 @REQUEST_TYPE : GET (Get all Product)
  *****************************************************************/
 
-// Router.route("/").get();
+Router.route("/").get(getAllProducts);
 export default Router;

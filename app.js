@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import globalErroHandller from "./controllers/error.Controller.js";
 import categoryRoute from "./routes/category.Route.js";
+import productRoute from "./routes/product.Route.js";
 
 const app = express();
 
@@ -45,6 +46,11 @@ app.use("/api/v1/user", UserRoute);
  * @CATEGORY_ROUTES
  *******************************/
 app.use("/api/v1/category", categoryRoute);
+
+/*******************************
+ * @PRODUCT_ROUTES
+ *******************************/
+app.use("/api/v1/product", productRoute);
 
 // ERROR HANDLER FOR NOT SERVER URL
 

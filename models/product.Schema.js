@@ -40,12 +40,16 @@ const productSchema = mongoose.Schema(
     stock: {
       type: Number,
       min: 0,
+      required: [true, "Stock field cannot be empty!"],
     },
     sold: {
       type: Number,
       min: 0,
     },
-    isActive: Boolean,
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,
